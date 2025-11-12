@@ -2,6 +2,8 @@ CASILLA_VACIA =0
 FICHA_CIRCULO = 1
 FICHA_EQUIS=2
 
+FICHAS_LINEA = 4
+
 NOMBRE1=""
 NOMBRE2=""
 MODO=""
@@ -17,12 +19,13 @@ def main():
     }
 
     turno = FICHA_CIRCULO
+    mostrar_tablero(tablero)
 
     while True:
 
         jugador_nombre = jugadores[turno]
 
-        mostrar_tablero(tablero)
+
         print("Turno de ", jugador_nombre)
 
         while True:
@@ -44,10 +47,61 @@ def main():
 
         mostrar_tablero_columna(tablero, columna)
 
+
+        ganador = comprobar_linea(tablero, columna-1, FICHAS_LINEA)
+
+        if ganador:
+            print(f"PARTIDA FINALIZADA\n"
+                  f"HA GANADO: {jugador_nombre}\n")
+
+            break
+
         turno = FICHA_CIRCULO if turno == FICHA_EQUIS else FICHA_EQUIS
 
 
 
+def comprobar_linea(tablero, columna, numero_fichas_linea):
+
+    filas = len(tablero)
+    columnas = len(tablero[0])
+
+
+    fila = None
+    for f in range(filas-1, -1,-1):
+        if tablero[f][columna] != CASILLA_VACIA:
+            fila = f
+            break
+
+    if fila is None:
+        return False
+
+    jugador = tablero[fila][columna]
+
+    def contar_en_direccion(df, dc):
+
+        count = 0
+        f_actual, c_actual = fila + df, columna + dc
+        while 0 <= f_actual < filas and 0 <= c_actual < columnas and tablero[f_actual][c_actual] == jugador:
+            count += 1
+            f_actual += df
+            c_actual += dc
+        return count
+
+    direcciones = [
+        (0, 1),   # Horizontal derecha
+        (1, 0),   # Vertical hacia abajo
+        (1, 1),   # Diagonal ↘
+        (1, -1)   # Diagonal ↙
+    ]
+
+    for df, dc in direcciones:
+        total = 1 # Ficha Actual
+        total += contar_en_direccion(df, dc) # en una dirección
+        total += contar_en_direccion(-df, -dc) # en la contraria
+        if total >= numero_fichas_linea:
+            return True
+
+    return False
 
 def colocar_ficha(tablero, columna, ficha):
     for fila in range(len(tablero) -1, -1,-1):
@@ -71,7 +125,7 @@ def mostrar_tablero_columna(tablero, columna_ultima_ficha):
 
     numeros = []
     for i in range(columnas):
-        if i == columna_ultima_ficha:
+        if i == columna_ultima_ficha-1:
             numeros.append(f"\033[1;33m{i + 1:^3}\033[0m")
         else:
             numeros.append(f"{i + 1:^3}")
@@ -80,7 +134,7 @@ def mostrar_tablero_columna(tablero, columna_ultima_ficha):
 
     partes_superior = []
     for i in range(columnas):
-        if i == columna_ultima_ficha:
+        if i == columna_ultima_ficha-1:
             partes_superior.append("\033[1;33m───\033[0m")
         else:
             partes_superior.append("───")
@@ -91,7 +145,7 @@ def mostrar_tablero_columna(tablero, columna_ultima_ficha):
     for i, fila in enumerate(tablero):
         contenido_partes = []
         for j, c in enumerate(fila):
-            if j == columna_ultima_ficha:
+            if j == columna_ultima_ficha-1:
                 contenido_partes.append(f"\033[1;33m {simbolos[c]} \033[0m")
             else:
                 contenido_partes.append(f" {simbolos[c]} ")
@@ -101,7 +155,7 @@ def mostrar_tablero_columna(tablero, columna_ultima_ficha):
         if i < filas - 1:
             partes_separadora = []
             for j in range(columnas):
-                if j == columna_ultima_ficha:
+                if j == columna_ultima_ficha-1:
                     partes_separadora.append("\033[1;33m───\033[0m")
                 else:
                     partes_separadora.append("───")
@@ -110,7 +164,7 @@ def mostrar_tablero_columna(tablero, columna_ultima_ficha):
 
     partes_inferior = []
     for i in range(columnas):
-        if i == columna_ultima_ficha:
+        if i == columna_ultima_ficha-1:
             partes_inferior.append("\033[1;33m───\033[0m")
         else:
             partes_inferior.append("───")
@@ -152,6 +206,8 @@ def mostrar_tablero(tablero):
 def crear_tablero():
     print("Introduce el tamaño del tablero, como mínimo el tablero tendrá unas dimensiones de 6 filas por 7 columnas")
 
+    global FICHAS_LINEA
+
     while True:
         try:
             filas = int(input("Ingrese las filas del tablero: "))
@@ -163,6 +219,22 @@ def crear_tablero():
                 columnas = 7
 
             break
+        except:
+            print("Ingrese un numero valido")
+
+    while True:
+        try:
+            FICHAS_LINEA = int(input(f"Introduce cuantas fichas en linea quieres que sean necesarias para ganar\n"
+                                     f"el mínimo siempre será 4 y como máximo sera la longitud de las columnas: "))
+
+
+            if FICHAS_LINEA<4:
+                FICHAS_LINEA = 4
+            elif FICHAS_LINEA>columnas:
+                FICHAS_LINEA = columnas
+
+            break
+
         except:
             print("Ingrese un numero valido")
 
@@ -198,9 +270,6 @@ def modo_juego():
 
     elif MODO in ['MAQUINA', 'MÁQUINA']:
         NOMBRE1 = input("Ingrese el nombre del jugador: ")
-
-
-
 
 
 if __name__ == "__main__":
