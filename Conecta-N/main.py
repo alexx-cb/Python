@@ -55,19 +55,66 @@ def main():
                   f"HA GANADO: {jugador_nombre}\n")
 
             break
+        elif not hay_casillas_libres(tablero):
+            print(f"PARTIDA FINALIZADA\n"
+                  f"HAY UN EMPATE")
+
+            break
 
         turno = FICHA_CIRCULO if turno == FICHA_EQUIS else FICHA_EQUIS
 
 
+def hay_casillas_libres(tablero):
 
-def comprobar_linea(tablero, columna, numero_fichas_linea):
+    for fila in tablero:
+        for casilla in fila:
+            if casilla == CASILLA_VACIA:
+                return True
 
+    return False
+
+
+def contar_fichas_en_direccion(tablero, fila, columna, ficha, df, dc):
     filas = len(tablero)
     columnas = len(tablero[0])
 
+    count = 0
+    f_actual, c_actual = fila + df, columna + dc
+
+    while (0 <= f_actual < filas and 0 <= c_actual < columnas and
+           tablero[f_actual][c_actual] == ficha):
+        count += 1
+        f_actual += df
+        c_actual += dc
+
+    return count
+
+
+def calcular_max_linea(tablero, fila, columna, ficha):
+    direcciones = [
+        (0, 1),  # Horizontal derecha
+        (1, 0),  # Vertical hacia abajo
+        (1, 1),  # Diagonal derecha
+        (1, -1)  # Diagonal izquierda
+    ]
+
+    max_linea = 0
+    for df, dc in direcciones:
+        total = 1  # La ficha actual
+        total += contar_fichas_en_direccion(tablero, fila, columna, ficha, df, dc)
+        total += contar_fichas_en_direccion(tablero, fila, columna, ficha, -df, -dc)
+
+        if total > max_linea:
+            max_linea = total
+
+    return max_linea
+
+
+def comprobar_linea(tablero, columna, numero_fichas_linea):
+    filas = len(tablero)
 
     fila = None
-    for f in range(filas-1, -1,-1):
+    for f in range(filas - 1, -1, -1):
         if tablero[f][columna] != CASILLA_VACIA:
             fila = f
             break
@@ -77,33 +124,33 @@ def comprobar_linea(tablero, columna, numero_fichas_linea):
 
     jugador = tablero[fila][columna]
 
-    def contar_en_direccion(df, dc):
+    max_linea = calcular_max_linea(tablero, fila, columna, jugador)
 
-        count = 0
-        f_actual, c_actual = fila + df, columna + dc
-        while 0 <= f_actual < filas and 0 <= c_actual < columnas and tablero[f_actual][c_actual] == jugador:
-            count += 1
-            f_actual += df
-            c_actual += dc
-        return count
+    return max_linea >= numero_fichas_linea
 
-    direcciones = [
-        (0, 1),   # Horizontal derecha
-        (1, 0),   # Vertical hacia abajo
-        (1, 1),   # Diagonal ↘
-        (1, -1)   # Diagonal ↙
-    ]
 
-    for df, dc in direcciones:
-        total = 1 # Ficha Actual
-        total += contar_en_direccion(df, dc) # en una dirección
-        total += contar_en_direccion(-df, -dc) # en la contraria
-        if total >= numero_fichas_linea:
-            return True
+def fichas_en_linea(tablero, ficha, columna):
+    filas = len(tablero)
 
-    return False
+    if tablero[0][columna] != CASILLA_VACIA:
+        return 0
+
+    fila_colocacion = None
+    for f in range(filas - 1, -1, -1):
+        if tablero[f][columna] == CASILLA_VACIA:
+            fila_colocacion = f
+            break
+
+    if fila_colocacion is None:
+        return 0
+
+    return calcular_max_linea(tablero, fila_colocacion, columna, ficha)
 
 def colocar_ficha(tablero, columna, ficha):
+    if tablero[0][columna] != CASILLA_VACIA:
+        print("La columna está llena, elige otra columna")
+        return False
+
     for fila in range(len(tablero) -1, -1,-1):
         if tablero[fila][columna] == CASILLA_VACIA:
             tablero[fila][columna] = ficha
