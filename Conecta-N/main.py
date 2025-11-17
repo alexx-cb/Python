@@ -1,3 +1,5 @@
+import random
+
 CASILLA_VACIA =0
 FICHA_CIRCULO = 1
 FICHA_EQUIS=2
@@ -7,9 +9,15 @@ FICHAS_LINEA = 4
 NOMBRE1=""
 NOMBRE2=""
 MODO=""
+DIFICULTAD=0
 
 
 def main():
+    """
+    Funcion principal del programa que permite el juego de JcJ y JcM
+
+    :return: void
+    """
     modo_juego()
     tablero = crear_tablero()
 
@@ -18,7 +26,7 @@ def main():
         FICHA_CIRCULO: NOMBRE2,
     }
 
-    turno = FICHA_CIRCULO
+    turno = FICHA_EQUIS
     mostrar_tablero(tablero)
 
     while True:
@@ -28,22 +36,26 @@ def main():
 
         print("Turno de ", jugador_nombre)
 
-        while True:
-            try:
-                columna = int(input("Ingrese la columna en la que quiere colocar la ficha: "))
+        if MODO in ["MÁQUINA", "MAQUINA"] and turno == FICHA_CIRCULO:
+            colocar_aleatorio(tablero, turno)
+        else:
 
-                while columna < 1 or columna > len(tablero[0]):
-                    print(f"La columna no existe, debe estar entre 1 y {len(tablero[0])}")
+            while True:
+                try:
                     columna = int(input("Ingrese la columna en la que quiere colocar la ficha: "))
 
-                break
+                    while columna < 1 or columna > len(tablero[0]):
+                        print(f"La columna no existe, debe estar entre 1 y {len(tablero[0])}")
+                        columna = int(input("Ingrese la columna en la que quiere colocar la ficha: "))
 
-            except:
-                print("Ingrese un numero de columna válido")
+                    break
+
+                except:
+                    print("Ingrese un numero de columna válido")
 
 
-        if not colocar_ficha(tablero, columna-1, turno):
-            continue
+            if not colocar_ficha(tablero, columna-1, turno):
+                continue
 
         mostrar_tablero_columna(tablero, columna)
 
@@ -64,7 +76,17 @@ def main():
         turno = FICHA_CIRCULO if turno == FICHA_EQUIS else FICHA_EQUIS
 
 
+def colocar_aleatorio(tablero, ficha):
+    columna_aleatoria = random.randint(0, len(tablero[0]))
+    colocar_ficha(tablero, columna_aleatoria, ficha)
+
 def hay_casillas_libres(tablero):
+    """
+    Funcion que devuelve si hay casillas libres restantes en el tablero
+
+    :param tablero: Tablero actual de la partida
+    :return: True si todavia hay casillas libres, False si no
+    """
 
     for fila in tablero:
         for casilla in fila:
@@ -75,6 +97,17 @@ def hay_casillas_libres(tablero):
 
 
 def contar_fichas_en_direccion(tablero, fila, columna, ficha, df, dc):
+    """
+    Funcion que devuelve las fichas que hay en linea teniendo en cuenta la ultima ficha colocada
+
+    :param tablero: tablero actual de la partida
+    :param fila: fila de la ultima ficha
+    :param columna: columna de la ultima ficha
+    :param ficha: X o O
+    :param df: direccion en filas desde la fila inicial
+    :param dc: direccion en columnas desde la columna inicial
+    :return: numero de fichas que hay en linea
+    """
     filas = len(tablero)
     columnas = len(tablero[0])
 
@@ -91,6 +124,15 @@ def contar_fichas_en_direccion(tablero, fila, columna, ficha, df, dc):
 
 
 def calcular_max_linea(tablero, fila, columna, ficha):
+    """
+    Funcion que devulve el maximo numero de fichas que puede haber en linea teniendo en cuenta la ultima ficha colocada
+
+    :param tablero: Tablero actual de la partida
+    :param fila: fila de la ultima ficha colocada
+    :param columna: columna de la ultima ficha colocada
+    :param ficha: X o O
+    :return: numero máximo de fichas que puede haber en linea
+    """
     direcciones = [
         (0, 1),  # Horizontal derecha
         (1, 0),  # Vertical hacia abajo
@@ -111,6 +153,14 @@ def calcular_max_linea(tablero, fila, columna, ficha):
 
 
 def comprobar_linea(tablero, columna, numero_fichas_linea):
+    """
+    Funcion que comprueba si existe una linea ganadora despues de colocar una ficha
+
+    :param tablero: Tablero actual de la partida
+    :param columna: columna en la que se ha colocado la ficha
+    :param numero_fichas_linea: Constante con el numero de fichas en linea necesarias para ganar la partida
+    :return: True si las fichas en linea son mayor o iguales a la constante o False por el contrario
+    """
     filas = len(tablero)
 
     fila = None
@@ -130,6 +180,14 @@ def comprobar_linea(tablero, columna, numero_fichas_linea):
 
 
 def fichas_en_linea(tablero, ficha, columna):
+    """
+    Funcion que devuelve las fichas que hay en linea actualmente
+
+    :param tablero: Tablero actual de la partida
+    :param ficha: X o O
+    :param columna: columna en la que se ha colocado la ficha
+    :return: 0 o numero de fichas que puede haber en linea
+    """
     filas = len(tablero)
 
     if tablero[0][columna] != CASILLA_VACIA:
@@ -147,6 +205,14 @@ def fichas_en_linea(tablero, ficha, columna):
     return calcular_max_linea(tablero, fila_colocacion, columna, ficha)
 
 def colocar_ficha(tablero, columna, ficha):
+    """
+    Funcion que coloca una ficha en el tablero
+
+    :param tablero: Tablero actual de la partida
+    :param columna: columna en la que se va a colocar la ficha
+    :param ficha: X o O
+    :return: True si se ha podido colocar la ficha en el tablero, False por el contrario
+    """
     if tablero[0][columna] != CASILLA_VACIA:
         print("La columna está llena, elige otra columna")
         return False
@@ -159,6 +225,13 @@ def colocar_ficha(tablero, columna, ficha):
 
 
 def mostrar_tablero_columna(tablero, columna_ultima_ficha):
+    """
+    Funcion que muestra el tablero con la ultima columna en la que se ha colocado una ficha resaltada
+
+    :param tablero: Tablero actual de la partida
+    :param columna_ultima_ficha: columna en la que se ha colocado la ficha
+    :return: void
+    """
     simbolos = {
         CASILLA_VACIA: " ",
         FICHA_CIRCULO: "O",
@@ -221,6 +294,12 @@ def mostrar_tablero_columna(tablero, columna_ultima_ficha):
 
 
 def mostrar_tablero(tablero):
+    """
+    Funcion que muesta el tablero
+
+    :param tablero: Tablero actual de la partida
+    :return: void
+    """
     simbolos = {
         CASILLA_VACIA: " ",
         FICHA_CIRCULO: "O",
@@ -251,6 +330,11 @@ def mostrar_tablero(tablero):
     print()
 
 def crear_tablero():
+    """
+    Funcion que crea el tablero en el que se va a jugar
+
+    :return: tablero
+    """
     print("Introduce el tamaño del tablero, como mínimo el tablero tendrá unas dimensiones de 6 filas por 7 columnas")
 
     global FICHAS_LINEA
@@ -290,6 +374,11 @@ def crear_tablero():
 
 
 def modo_juego():
+    """
+    Funcion que permite elegir el modo de juego, JcJ o JcM y guarda los nombres en constantes
+
+    :return: void
+    """
     print("Elige un modo de juego (Jugador vs Jugador o Jugador vs Máquina): ")
 
     global MODO
@@ -317,6 +406,7 @@ def modo_juego():
 
     elif MODO in ['MAQUINA', 'MÁQUINA']:
         NOMBRE1 = input("Ingrese el nombre del jugador: ")
+        NOMBRE2 = "Máquina"
 
 
 if __name__ == "__main__":
