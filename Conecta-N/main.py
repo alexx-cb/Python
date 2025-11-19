@@ -37,7 +37,23 @@ def main():
         print("Turno de ", jugador_nombre)
 
         if MODO in ["MÁQUINA", "MAQUINA"] and turno == FICHA_CIRCULO:
-            colocar_aleatorio(tablero, turno)
+
+            if DIFICULTAD == 1:
+                columnas_disponibles = [col for col in range(len(tablero[0])) if tablero[0][col] == CASILLA_VACIA]
+                if not columnas_disponibles:
+                    continue
+                columna = random.choice(columnas_disponibles)
+                if not colocar_ficha(tablero, columna, turno):
+                    continue
+                columna = columna + 1
+                print(f"La máquina coloca en la columna {columna}")
+
+            elif DIFICULTAD == 2:
+                columna = turno_maquina(tablero, FICHA_CIRCULO, FICHA_EQUIS)
+                if columna is None or not colocar_ficha(tablero, columna, turno):
+                    continue
+                columna = columna + 1
+                print(f"La máquina coloca en la columna {columna}")
         else:
 
             while True:
@@ -76,10 +92,115 @@ def main():
         turno = FICHA_CIRCULO if turno == FICHA_EQUIS else FICHA_EQUIS
 
 
-def colocar_aleatorio(tablero, ficha):
-    columna_aleatoria = random.randint(0, len(tablero[0]))
-    colocar_ficha(tablero, columna_aleatoria, ficha)
+def turno_maquina(tablero, ficha_maquina, ficha_jugador):
+    """
+    Funcion que decide donde colocar la ficha de la máquina según las reglas de prioridad.
 
+    :param tablero: Tablero actual de la partida
+    :param ficha_maquina: ficha que coloca la maquina
+    :param ficha_jugador: ficha que coloca el jugador
+    :return: columna en la que se debe colocar la ficha
+    """
+
+    # 1 - Puedo ganar?
+
+    columna = buscar_columna_ganar_bloquear(tablero, ficha_maquina)
+    if columna is not None:
+        return columna
+
+    # 2- Bloquear al jugador?
+
+    columna = buscar_columna_ganar_bloquear(tablero, ficha_jugador)
+    if columna is not None:
+        return columna
+
+    # 3 - Columna con mas fichas en linea
+
+    columna = buscar_mejor_columna(tablero, ficha_maquina)
+    if columna is not None:
+        return columna
+
+    # 4 - Aleatorio
+
+    return columna_aleatoria(tablero)
+
+
+def buscar_columna_ganar_bloquear(tablero, ficha):
+    """
+    Funcion que busca una columna para ganar o bloquear al jugador
+
+    :param tablero: Tablero actual de la partida
+    :param ficha: Ficha para colocar
+    :return: columna para poder ganar o bloquear, o None
+    """
+
+    columnas = len(tablero[0])
+
+    for col in range(columnas):
+        if fichas_en_linea(tablero, ficha, col) >= FICHAS_LINEA:
+            return col
+
+    return None
+
+
+def buscar_mejor_columna(tablero, ficha_maquina):
+    """
+    Funcion que busca la columna en donde se obtienen mas fichas en linea. Si hay mas de una columna con las misma
+    cantidad de fichas posibles en linea, elige una aleatoria entre esas
+
+    :param tablero: Tablero actual de la partida
+    :param ficha_maquina: Ficha de la maquina
+    :return: columna con mas fichas en linea posible o None
+    """
+
+    columnas = len(tablero[0])
+    mejores_columnas = []
+    max_fichas =0
+
+    for col in range(columnas):
+        fichas = fichas_en_linea(tablero, ficha_maquina, col)
+
+        if fichas > max_fichas:
+            max_fichas=fichas
+            mejores_columnas = [col]
+
+        elif fichas == max_fichas and fichas > 0:
+            mejores_columnas.append(col)
+
+
+    if mejores_columnas:
+        return random.choice(mejores_columnas)
+
+    return None
+
+
+def columna_aleatoria(tablero):
+    """
+    Funcion que devuelve la columna aleatoria sin colocar la ficha
+    :param tablero: tablero actual de la partida
+    :return: columna en donde se debe colocar la ficha
+    """
+    columnas_disponibles = []
+    for col in range(len(tablero[0])):
+        if tablero[0][col] == CASILLA_VACIA:
+            columnas_disponibles.append(col)
+
+    if columnas_disponibles:
+        return random.choice(columnas_disponibles)
+
+    return None
+
+
+def colocar_aleatorio(tablero, ficha):
+    """
+    Funcion que coloca una ficha en una columna random
+    """
+    columna = columna_aleatoria(tablero)
+
+    if columna is None:
+        return False
+
+    return colocar_ficha(tablero, columna, ficha)
 def hay_casillas_libres(tablero):
     """
     Funcion que devuelve si hay casillas libres restantes en el tablero
@@ -400,6 +521,7 @@ def modo_juego():
 
     if MODO == 'JUGADOR':
         global NOMBRE2
+        global DIFICULTAD
 
         NOMBRE1 = input("Ingrese el nombre del jugador 1: ")
         NOMBRE2 = input("Ingrese el nombre del jugador 2: ")
@@ -407,6 +529,19 @@ def modo_juego():
     elif MODO in ['MAQUINA', 'MÁQUINA']:
         NOMBRE1 = input("Ingrese el nombre del jugador: ")
         NOMBRE2 = "Máquina"
+
+        while True:
+            try:
+                DIFICULTAD = int(input("Ingrese la dificultad de la maquina '1' o '2', (1-Facil / 2-Dificil): "))
+
+                if 1 <= DIFICULTAD <= 2:
+                    break
+                else:
+                    print("La dificultad debe ser 1 o 2")
+
+            except ValueError:
+                print("Ingrese un valor válido para la dificultad '1' o '2'")
+
 
 
 if __name__ == "__main__":
