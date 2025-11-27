@@ -15,8 +15,6 @@ DIFICULTAD=0
 def main():
     """
     Funcion principal del programa que permite el juego de JcJ y JcM
-
-    :return: void
     """
     modo_juego()
     tablero = crear_tablero()
@@ -30,30 +28,26 @@ def main():
     mostrar_tablero(tablero)
 
     while True:
-
         jugador_nombre = jugadores[turno]
-
-
         print("Turno de ", jugador_nombre)
 
-        if MODO in ["MÁQUINA", "MAQUINA"] and turno == FICHA_CIRCULO:
+        columna_indice = None
 
+        if MODO in ["MÁQUINA", "MAQUINA"] and turno == FICHA_CIRCULO:
             if DIFICULTAD == 1:
                 columnas_disponibles = [col for col in range(len(tablero[0])) if tablero[0][col] == CASILLA_VACIA]
                 if not columnas_disponibles:
                     continue
-                columna = random.choice(columnas_disponibles)
-                if not colocar_ficha(tablero, columna, turno):
+                columna_indice = random.choice(columnas_disponibles)
+                if not colocar_ficha(tablero, columna_indice, turno):
                     continue
-                columna = columna + 1
-                print(f"La máquina coloca en la columna {columna}")
+                print(f"La máquina coloca en la columna {columna_indice + 1}")
 
             elif DIFICULTAD == 2:
-                columna = turno_maquina(tablero, FICHA_CIRCULO, FICHA_EQUIS)
-                if columna is None or not colocar_ficha(tablero, columna, turno):
+                columna_indice = turno_maquina(tablero, FICHA_CIRCULO, FICHA_EQUIS)
+                if columna_indice is None or not colocar_ficha(tablero, columna_indice, turno):
                     continue
-                columna = columna + 1
-                print(f"La máquina coloca en la columna {columna}")
+                print(f"La máquina coloca en la columna {columna_indice + 1}")
         else:
 
             while True:
@@ -69,28 +63,24 @@ def main():
                 except:
                     print("Ingrese un numero de columna válido")
 
-
-            if not colocar_ficha(tablero, columna-1, turno):
+            columna_indice = columna - 1
+            if not colocar_ficha(tablero, columna_indice, turno):
                 continue
 
-        mostrar_tablero_columna(tablero, columna)
+        mostrar_tablero_columna(tablero, columna_indice + 1)
 
-
-        ganador = comprobar_linea(tablero, columna-1, FICHAS_LINEA)
+        ganador = comprobar_linea(tablero, columna_indice, FICHAS_LINEA)
 
         if ganador:
             print(f"PARTIDA FINALIZADA\n"
                   f"HA GANADO: {jugador_nombre}\n")
-
             break
         elif not hay_casillas_libres(tablero):
             print(f"PARTIDA FINALIZADA\n"
                   f"HAY UN EMPATE")
-
             break
 
         turno = FICHA_CIRCULO if turno == FICHA_EQUIS else FICHA_EQUIS
-
 
 def turno_maquina(tablero, ficha_maquina, ficha_jugador):
     """
@@ -285,7 +275,7 @@ def comprobar_linea(tablero, columna, numero_fichas_linea):
     filas = len(tablero)
 
     fila = None
-    for f in range(filas - 1, -1, -1):
+    for f in range(filas):
         if tablero[f][columna] != CASILLA_VACIA:
             fila = f
             break
@@ -323,7 +313,15 @@ def fichas_en_linea(tablero, ficha, columna):
     if fila_colocacion is None:
         return 0
 
-    return calcular_max_linea(tablero, fila_colocacion, columna, ficha)
+
+    tablero[fila_colocacion][columna] = ficha
+
+    max_linea = calcular_max_linea(tablero, fila_colocacion, columna, ficha)
+
+
+    tablero[fila_colocacion][columna] = CASILLA_VACIA
+
+    return max_linea
 
 def colocar_ficha(tablero, columna, ficha):
     """
