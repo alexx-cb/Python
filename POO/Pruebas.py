@@ -7,6 +7,17 @@ class Alumno:
     def nombre_apellido(self):
         return self.nombre + " " + self.apellidos
 
+    @property
+    def edad(self):
+        return self.edad
+    
+    @edad.setter
+    def edad(self, value):
+        if value<1:
+            raise ValueError("El edad debe ser mayor que 0")
+        self._edad = value
+
+
     def __str__(self):
         return self.nombre + " " + self.apellidos + " " + str(self.edad)
 
