@@ -6,7 +6,7 @@ from datetime import datetime
 class Movimiento:
     ALPHANUMERIC_EXPRESION = re.compile(r'^[a-zA-Z0-9]{5,50}$')
 
-    def __init__(self, cantidad, concepto):
+    def __init__(self, cantidad: float, concepto:str):
         """
         Constructor de la clase Movimiento. \n
 
@@ -14,10 +14,10 @@ class Movimiento:
         :param cantidad: int con la cantidad a mover
         :param concepto: str con el concepto del movimiento
         """
-        if not self._check_positive(cantidad):
+        if not self.check_positive(cantidad):
             raise ValueError("La cantidad ha de ser positiva.")
 
-        if not self._check_alphanumeric(concepto):
+        if not self.check_alphanumeric(concepto):
             raise ValueError("El concepto ha de ser alfanumerico de 5 - 50 caracteres.")
 
         self._cantidad = cantidad
@@ -26,37 +26,56 @@ class Movimiento:
 
     @property
     def cantidad(self):
+        """
+        Getter de cantidad
+        :return: int
+        """
         return self._cantidad
 
     @property
     def concepto(self):
+        """
+        Getter de concepto
+        :return: str
+        """
         return self._concepto
 
     @property
     def fecha(self):
+        """
+        Getter de fecha
+        :return: datetime
+        """
         return self._fecha
 
     @concepto.setter
-    def concepto(self,value):
-        if not Movimiento.ALPHANUMERIC_EXPRESION.fullmatch(value):
+    def concepto(self,concepto):
+        """
+        Setter de concepto \n
+
+        Lanza ValueError si no pasa la expresion regular
+        :param concepto: str con el concepto del movimiento
+        :return: void
+        """
+        if not Movimiento.ALPHANUMERIC_EXPRESION.fullmatch(concepto):
             raise ValueError("El concepto ha de ser alfanumerico de 5 - 50 caracteres")
 
-        self._concepto = value
+        self._concepto = concepto
 
 
     @staticmethod
-    def _check_positive(value :int)-> bool:
+    def check_positive(value :float)-> bool:
         """
         Static method para comprobar si el valor es positivo.
-        :param value: int con el valor a comprobar
+        :param value: float con el valor a comprobar
         :return: bool
         """
         if value <= 0:
-            return True
-        return False
+            return False
+        return True
 
     @staticmethod
-    def _check_alphanumeric(string: str)-> bool:
+    def check_alphanumeric(string: str)-> bool:
         """
         Static method para comprobar si la expresion es alfanumerica de 5 - 50 caracteres.
         :param string: str con la cadena
@@ -66,14 +85,27 @@ class Movimiento:
 
 
     def __str__(self):
-        return self._cantidad + ", " + self._concepto + ", " + self._fecha
+        """
+        Metodo que devuelve un str con los atributos del objeto
+        :return: str
+        """
+        return "Cantidad: " + str(self._cantidad) + ", Concepto: " + self._concepto + ", Fecha: " + str(self._fecha)
 
     def __copy__(self):
+        """
+        Metodo que copia un objeto superficialmente
+        :return: obj
+        """
         new_obj = type(self)(copy.copy(self._cantidad), copy.copy(self._concepto))
         new_obj._fecha = copy.copy(self._fecha)
         return new_obj
 
     def __eq__(self, other):
+        """
+        Metodo que compara si un objeto es igual a otro
+        :param other: obj
+        :return: bool
+        """
         if not isinstance(other, Movimiento):
             return False
-        return self._cantidad == other._cantidad and self._concepto == other._concepto
+        return self._cantidad == other._cantidad and self._concepto == other._concepto and self._fecha == other._fecha
