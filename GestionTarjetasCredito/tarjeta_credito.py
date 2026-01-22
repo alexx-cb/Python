@@ -93,7 +93,7 @@ class TarjetaCredito:
         return suma
 
 
-    def movimientos(self, number:int):
+    def movimientos(self, number:int)->str | None:
         """
         Funcion que devuelve los ultimo n movimientos
         :param number: int numero de los ultimos movimientos
@@ -113,6 +113,59 @@ class TarjetaCredito:
         """
         return len(self._movements)
 
+    @staticmethod
+    def _luhn_sum(number_str: str) -> int:
+        """
+        Funcion que devuelve la suma del algoritmo de Luhn
+        :param number_str: str con el número de la tarjeta
+        :return: int
+        """
+        suma = 0
+        volteado = number_str[::-1]
+
+        for index, n in enumerate(volteado):
+            num = int(n)
+            if index % 2 == 0:
+                num *= 2
+                if num > 9:
+                    num -= 9
+            suma += num
+
+        return suma
+
+    @staticmethod
+    def _obtener_digito_control(number: int) -> int:
+        """
+        Funcion que recibe un numero de 15 digitos y devuelve el digito de control
+        :param number: int con el numero de la tarjeta sin el ultimo digito
+        :return: int
+        """
+        n_str = str(number)
+
+        if len(n_str) != 15:
+            raise ValueError("El número debe tener 15 dígitos")
+
+        suma = TarjetaCredito._luhn_sum(n_str)
+        return (10 - (suma % 10)) % 10
+
+    @staticmethod
+    def _comprobar_numero_tarjeta(number: int) -> bool:
+        """
+        Funcion que comprueba si el numero de la tarjeta pasa el algoritmo de Luhn
+        :param number: int con el número de 16 digitos
+        :return: bool
+        """
+        n_str = str(number)
+
+        if len(n_str) != 16:
+            return False
+
+        digito_real = int(n_str[-1])
+        numero_sin_control = int(n_str[:-1])
+
+        digito_calculado = TarjetaCredito._obtener_digito_control(numero_sin_control)
+
+        return digito_real == digito_calculado
 
 
 
@@ -161,39 +214,6 @@ class TarjetaCredito:
         """
         return bool(TarjetaCredito.CARD_EXPRESION.fullmatch(str(card)))
 
-    @staticmethod
-    def _comprobar_numero_tarjeta(number: int) -> bool:
-        """
-        Static Method que devuelve si el número de la tarjeta de crédito pasa el algoritmo de Luhn
-        :param number: int con el número de la tarjeta
-        :return: bool
-        """
-
-        if not TarjetaCredito._check_card(number):
-            return False
-
-        n_str = str(number)
-
-        volteado = n_str[::-1]
-        suma = 0
-
-        for index, n in enumerate(volteado):
-            num = int(n)
-            if index % 2 != 0:
-                num *= 2
-
-                if num > 9:
-                    num -= 9
-                suma += num
-
-            else:
-                suma += num
-
-        rest = suma % 10
-        if rest == 0:
-            return True
-        else:
-            return False
 
     @property
     def holder(self):
@@ -316,12 +336,3 @@ class TarjetaCredito:
         if not isinstance(other, TarjetaCredito):
             return False
         return self._card_number == other._card_number
-
-
-def main():
-    tarjeta = TarjetaCredito("jose adfsadfasdfsdfad", "74092314E", 4785, 2500, 4111111111111111)
-    print(tarjeta)
-
-
-if __name__ == "__main__":
-    main()
