@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class Movimiento:
-    ALPHANUMERIC_EXPRESION = re.compile(r'^[a-zA-Z0-9]{5,50}$')
+    ALPHANUMERIC_EXPRESION = re.compile(r'^[a-zA-Z0-9 ]{5,50}$')
 
     def __init__(self, cantidad: float, concepto:str):
         """

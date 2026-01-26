@@ -35,7 +35,7 @@ class TarjetaCredito:
         if not self._check_nif(nif):
             raise ValueError("Introduce un NIF, CIF o NIE correcto")
 
-        if not self._check_pin(pin):
+        if not self.check_pin(pin):
             raise ValueError("Introduce un pin correcto, minimo debe haber 4 dígitos")
 
         if not (500 <= limit <= 5000):
@@ -68,10 +68,15 @@ class TarjetaCredito:
         :return: bool
         """
         if not Movimiento.check_positive(cantidad):
-            raise ValueError("Introduce un numero positivo")
+            raise ValueError("Introduce un número positivo")
 
-        if cantidad > self._limit:
-            raise ValueError("La cantidad del pago no debe ser superior al limite de pago")
+        total_gastado = self.gastado()
+
+        if total_gastado + cantidad > self._limit:
+            raise ValueError(
+                f"No se puede realizar el pago: se excedería el límite de {self._limit}€ "
+                f"(ya gastado: {total_gastado}€)"
+            )
 
         if not Movimiento.check_alphanumeric(concepto):
             raise ValueError("El concepto debe ser una cadena alfanumérica de 5 - 50 caracteres")
@@ -92,19 +97,17 @@ class TarjetaCredito:
 
         return suma
 
-
-    def movimientos(self, number:int)->str | None:
+    def movimientos(self, number: int) -> list[Movimiento]:
         """
-        Funcion que devuelve los ultimo n movimientos
-        :param number: int numero de los ultimos movimientos
-        :return: obj
+        Devuelve los últimos `number` movimientos de la tarjeta.
+
+        :param number: int - número de movimientos que se quieren obtener
+        :return: lista de objetos Movimiento (vacía si no hay movimientos)
         """
         if not TarjetaCredito._check_positive_int(number):
-            raise ValueError("Introduce un numero positivo")
+            raise ValueError("Introduce un número positivo")
 
-        for move in self._movements[-number:]:
-            return move
-        return None
+        return self._movements[-number:][::-1]
 
     def numero_movimientos(self):
         """
@@ -132,6 +135,47 @@ class TarjetaCredito:
             suma += num
 
         return suma
+
+    @staticmethod
+    def _validar_nif(nif: str) -> bool:
+        letras = "TRWAGMYFPDXBNJZSQVHLCKE"
+        numero = int(nif[:8])
+        letra_real = nif[8]
+        return letras[numero % 23] == letra_real
+
+    @staticmethod
+    def _validar_nie(nie: str) -> bool:
+        letras = "TRWAGMYFPDXBNJZSQVHLCKE"
+        conversion = {'X': '0', 'Y': '1', 'Z': '2'}
+
+        numero = conversion[nie[0]] + nie[1:8]
+        letra_real = nie[8]
+
+        return letras[int(numero) % 23] == letra_real
+
+    @staticmethod
+    def _validar_cif(cif: str) -> bool:
+        letras_control = "JABCDEFGHI"
+        letra = cif[0]
+        numeros = cif[1:8]
+        control = cif[8]
+
+        suma_par = sum(int(n) for n in numeros[1::2])
+        suma_impar = 0
+
+        for n in numeros[::2]:
+            temp = int(n) * 2
+            suma_impar += temp // 10 + temp % 10
+
+        total = suma_par + suma_impar
+        digito = (10 - (total % 10)) % 10
+
+        if letra in "PQRSNW_attachment":
+            return control == letras_control[digito]
+        elif letra in "ABEH":
+            return control == str(digito)
+        else:
+            return control == str(digito) or control == letras_control[digito]
 
     @staticmethod
     def _obtener_digito_control(number: int) -> int:
@@ -167,8 +211,6 @@ class TarjetaCredito:
 
         return digito_real == digito_calculado
 
-
-
     @staticmethod
     def _check_positive_int(number:int)->bool:
         """
@@ -194,10 +236,18 @@ class TarjetaCredito:
         :param nif: str con la cadena de texto
         :return: bool
         """
-        return bool(TarjetaCredito.NIF_EXPRESION.fullmatch(nif))
+        if not TarjetaCredito.NIF_EXPRESION.fullmatch(nif):
+            return False
+
+        if nif[0].isdigit():
+            return TarjetaCredito._validar_nif(nif)
+        elif nif[0] in "XYZ":
+            return TarjetaCredito._validar_nie(nif)
+        else:
+            return TarjetaCredito._validar_cif(nif)
 
     @staticmethod
-    def _check_pin(pin: int) -> bool:
+    def check_pin(pin: int) -> bool:
         """
         Static Method que devuelve si el pin correcto
         :param pin: int con el pin de la tarjeta
@@ -213,7 +263,6 @@ class TarjetaCredito:
         :return: bool
         """
         return bool(TarjetaCredito.CARD_EXPRESION.fullmatch(str(card)))
-
 
     @property
     def holder(self):
@@ -295,9 +344,9 @@ class TarjetaCredito:
         :param pin: int
         :return: void
         """
-        if not TarjetaCredito._check_pin(pin):
+        if not TarjetaCredito.check_pin(pin):
             raise ValueError("El pin debe tener minimo 4 digitos")
-        self._nif = pin
+        self._pin = pin
 
     def __str__(self):
         """

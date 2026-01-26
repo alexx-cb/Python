@@ -2,43 +2,101 @@ from tarjeta_credito import TarjetaCredito
 
 class AplicacionTarjetaCredito:
 
-    def __init__(self):
+    def __init__(self)->None:
         self.lista_tarjetas = []
 
-    @staticmethod
-    def main()->None:
-        AplicacionTarjetaCredito.mostrar_menu()
+    def main(self)->None:
+        opcion =0
+
+        opciones = {
+            1: lambda: self.agregar_tarjeta(),
+            2: lambda : self.eliminar_tarjeta_nif(),
+            3: lambda : self.gestionar_tarjeta(input("Introduce el nif de la tarjeta")),
+            4: lambda : print(self.gasto_total_tarjetas())
+        }
+
+        while opcion != 5:
+            AplicacionTarjetaCredito.mostrar_menu()
+            try:
+                opcion = int(input("Introduce una opcion"))
+
+            except ValueError:
+                print("Introduce una opcion valida")
+                continue
 
 
-    def buscar_tarjeta(self, nif: str) -> TarjetaCredito | None:
-        for tarjeta in self.lista_tarjetas:
+            if opcion == 5:
+                break
+
+            accion = opciones.get(opcion)
+            if accion:
+                accion()
+            else:
+                print("Opcion no valida, introduce una opcion valida")
+
+    def agregar_tarjeta(self):
+        try:
+            tarjeta = self.crear_tarjeta()
+            if tarjeta:
+                self.lista_tarjetas.append(tarjeta)
+                print("Tarjeta creada correctamente")
+        except ValueError as e:
+            print(f"Error al crear la tarjeta: {e}")
+
+    def buscar_tarjeta(self, nif: str) -> int | None:
+        for index, tarjeta in enumerate(self.lista_tarjetas):
             if tarjeta.nif == nif:
-                return tarjeta
+                return index
 
         return None
 
-    def eliminar_tarjeta(self, nif: str) -> bool:
+    def eliminar_tarjeta(self,index) -> bool:
+        try:
+            self.lista_tarjetas.pop(index)
+            return True
+        except IndexError:
+            return False
+
+    def eliminar_tarjeta_nif(self):
+        nif = input("Introduce el nif de la tarjeta a eliminar")
+
+        index = self.buscar_tarjeta(nif)
+
+        if index is None:
+            print("No se ha encontrado la tarjeta asociada a ese nif")
+            return False
+
+        self.eliminar_tarjeta(index)
+        print(f"Se ha eliminado la tarjeta asociada a {nif}")
+        return True
+
+    def gasto_total_tarjetas(self):
+        suma =0
         for tarjeta in self.lista_tarjetas:
-            if tarjeta.nif == nif:
-                self.lista_tarjetas.remove(tarjeta)
-                return True
-        return False
+            individual = self.gasto_total(tarjeta)
+
+            suma += individual
+
+        print("El gasto total de las tarjetas es: ")
+        return suma
 
     def gestionar_tarjeta(self, nif: str) -> TarjetaCredito | None | str:
 
-        tarjeta = self.buscar_tarjeta(nif)
-        if not tarjeta:
+        index = self.buscar_tarjeta(nif)
+        if index is None:
             print("No se ha encontrado la tarjeta asociada a ese NIF")
             return
 
+        tarjeta = self.lista_tarjetas[index]
+
         opciones = {
-            1: lambda: print("Numero de la tarjeta: "+tarjeta.card_number),
-            2: lambda: print("Titular: " +tarjeta.holder),
-            3: lambda: print("Fecha de caducidad: " + tarjeta.expiration_month + "/" + tarjeta.expiration_year),
+            1: lambda: print("Numero de la tarjeta: "+str(tarjeta.card_number)),
+            2: lambda: print("Titular: " +str(tarjeta.holder)),
+            3: lambda: print("Fecha de caducidad: " + str(tarjeta.expiration_month) + "/" + str(tarjeta.expiration_year)),
             4: lambda: self._modificar_pin(tarjeta),
             5: lambda: self._realizar_pago(tarjeta),
             6: lambda: self._consultar_movimientos(tarjeta),
-            7: lambda: print(tarjeta.gasto_total())
+            7: lambda: print(self.gasto_total(tarjeta))
         }
 
         opcion =0
@@ -61,6 +119,59 @@ class AplicacionTarjetaCredito:
                 print("Opcion no valida, introduce un numero del 1 - 8")
 
     @staticmethod
+    def gasto_total(tarjeta)->float:
+        return TarjetaCredito.gastado(tarjeta)
+
+    @staticmethod
+    def _modificar_pin(tarjeta: TarjetaCredito)->bool:
+
+        while True:
+            new = input("Introduce el pin nuevo (mínimo 4 dígitos): ")
+            if new.isdigit() and len(new) >= 4:
+                tarjeta.pin = new
+                break
+
+        print("Pin modificado correctamente")
+        return True
+
+    @staticmethod
+    def _realizar_pago(tarjeta: TarjetaCredito)->bool :
+        if tarjeta.numero_movimientos() == 0:
+            total_gastado = 0
+        else:
+            total_gastado = tarjeta.gastado()
+
+        limite_restante = tarjeta.limit - total_gastado
+        print(f"El límite restante de la tarjeta es: {limite_restante}€")
+
+        while True:
+            try:
+                pago = float(input("Introduce la cantidad del pago: "))
+                if pago <= 0:
+                    print("Introduce un número mayor que 0")
+                    continue
+                if pago > limite_restante:
+                    print(f"No se puede realizar el pago. El límite restante es {limite_restante}€")
+                    continue
+                break
+            except ValueError:
+                print("Introduce un número válido para el pago")
+
+        while True:
+            concepto = input("Introduce el concepto (5 - 50 caracteres): ").strip()
+            if 5 <= len(concepto) <= 50:
+                break
+            print("El concepto debe tener entre 5 y 50 caracteres")
+
+        try:
+            tarjeta.pagar(pago, concepto)
+            print(f"Pago realizado con éxito: {pago}€ - {concepto}")
+            return True
+        except ValueError as e:
+            print(f"No se pudo realizar el pago: {e}")
+            return False
+
+    @staticmethod
     def _consultar_movimientos(tarjeta :TarjetaCredito):
         numero = tarjeta.numero_movimientos()
 
@@ -68,19 +179,16 @@ class AplicacionTarjetaCredito:
             print("La tarjeta de credito no tiene movimientos")
 
 
-        print("la lista de movimientos tiene una longitud de: " + numero)
+        print(f"la lista de movimientos tiene una longitud de: {numero}")
         print("Cuantos movimientos quiere comprobar?, se mostraran primero los últimos movimientos realizados")
 
-        n =0
-        while n < 0 or n > numero:
-
-
+        while True:
             try:
                 n = int(input("Introduce un numero de movimientos: "))
-                break
+                if 0 <= n <= numero:
+                    break
             except ValueError:
                 print(f"Introduce un numero válido entre 0 y {numero}")
-                continue
 
 
         lista = tarjeta.movimientos(n)
@@ -89,20 +197,24 @@ class AplicacionTarjetaCredito:
         for item in lista:
             print(item)
 
+    def existe_tarjeta_nif(self, nif: str) -> bool:
+        return any(tarjeta.nif == nif for tarjeta in self.lista_tarjetas)
 
-
-    @staticmethod
-    def crear_tarjeta()->TarjetaCredito:
+    def crear_tarjeta(self) -> TarjetaCredito | None:
         print("Introduce los siguientes datos para crear tarjeta")
+
         holder = input("Titular (15 - 80 caracteres): ")
         nif = input("NIF, CIF o NIE: ")
+
+        if self.existe_tarjeta_nif(nif):
+            print("Ya existe una tarjeta asociada a ese NIF")
+            return None
+
         pin = input("PIN (4 dígitos minimo): ")
-        limit = input("Limite de pago (500 - 5000): ")
-        card_num = int(input("Numero de la tarjeta de crédito (16 digitos): "))
+        limit = int(input("Limite de pago (500 - 5000): "))
+        card_num = input("Numero de la tarjeta de crédito (16 digitos): ")
 
         return TarjetaCredito(holder, nif, pin, limit, card_num)
-
-
 
     @staticmethod
     def mostrar_menu()->None:
