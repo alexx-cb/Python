@@ -3,9 +3,20 @@ from tarjeta_credito import TarjetaCredito
 class AplicacionTarjetaCredito:
 
     def __init__(self)->None:
+        """
+        Constructor de la clase AplicacionTarjetaCredito \n
+
+        Inicializa una list para agregar las TarjetaCredito
+        """
         self.lista_tarjetas = []
 
     def main(self)->None:
+        """
+        Funcion principal del programa \n
+
+        Ejecuta las funciones según lo ordene el usuario
+        :return: None
+        """
         opcion =0
 
         opciones = {
@@ -34,7 +45,11 @@ class AplicacionTarjetaCredito:
             else:
                 print("Opcion no valida, introduce una opcion valida")
 
-    def agregar_tarjeta(self):
+    def agregar_tarjeta(self)->None:
+        """
+        Funcion que agrega a la list de tarjetas la nueva tarjeta de credito si se ha creado correctamente
+        :return: None
+        """
         try:
             tarjeta = self.crear_tarjeta()
             if tarjeta:
@@ -44,20 +59,36 @@ class AplicacionTarjetaCredito:
             print(f"Error al crear la tarjeta: {e}")
 
     def buscar_tarjeta(self, nif: str) -> int | None:
+        """
+        Funcion que recibe por parámetro un nif de la tarjeta a buscar y devuelve la posicion en la que se encuentra
+        en la list de tarjetas o None si no encuentra la tarjeta
+        :param nif: str con el nif asociado a la tarjeta
+        :return: int | None
+        """
         for index, tarjeta in enumerate(self.lista_tarjetas):
             if tarjeta.nif == nif:
                 return index
 
         return None
 
-    def eliminar_tarjeta(self,index) -> bool:
+    def eliminar_tarjeta(self,index:int) -> bool:
+        """
+        Funcion que recibe por parametro una posición en el list de tarjetas y la elimina \n
+        devuelve True si se ha eliminado
+        :param index: int con la posición en el list de tarjetas
+        :return: bool
+        """
         try:
             self.lista_tarjetas.pop(index)
             return True
         except IndexError:
             return False
 
-    def eliminar_tarjeta_nif(self):
+    def eliminar_tarjeta_nif(self) -> bool:
+        """
+        Funcion que ejecuta las funciones de buscar y eliminar en el flujo del programa
+        :return: bool
+        """
         nif = input("Introduce el nif de la tarjeta a eliminar")
 
         index = self.buscar_tarjeta(nif)
@@ -70,7 +101,12 @@ class AplicacionTarjetaCredito:
         print(f"Se ha eliminado la tarjeta asociada a {nif}")
         return True
 
-    def gasto_total_tarjetas(self):
+    def gasto_total_tarjetas(self)-> float:
+        """
+        Funcion que recorre el list de tarjetas y devuelve la sumatoria de todos los pagos realizados por todas las
+        tarjetas
+        :return: float
+        """
         suma =0
         for tarjeta in self.lista_tarjetas:
             individual = self.gasto_total(tarjeta)
@@ -81,7 +117,14 @@ class AplicacionTarjetaCredito:
         return suma
 
     def gestionar_tarjeta(self, nif: str) -> TarjetaCredito | None | str:
+        """
+        Funcion que recibe por parametro un nif para poder gestionar en específico una tarjeta dentro del flujo del
+        programa. \n
 
+        LLama a otras funciones dependiendo de lo que decida el usuario
+        :param nif: str con el nif asociado a una tarjeta de credito
+        :return: TarjetaCredito | str | None
+        """
         index = self.buscar_tarjeta(nif)
         if index is None:
             print("No se ha encontrado la tarjeta asociada a ese NIF")
@@ -119,12 +162,21 @@ class AplicacionTarjetaCredito:
                 print("Opcion no valida, introduce un numero del 1 - 8")
 
     @staticmethod
-    def gasto_total(tarjeta)->float:
+    def gasto_total(tarjeta: TarjetaCredito)->float:
+        """
+        Static Method que devuelve el gasto total de la tarjeta
+        :param tarjeta: TarjetaCredito
+        :return: float
+        """
         return TarjetaCredito.gastado(tarjeta)
 
     @staticmethod
     def _modificar_pin(tarjeta: TarjetaCredito)->bool:
-
+        """
+        Static Method que modifica el pin de la tarjeta devuelve True si se ha modificado con éxito
+        :param tarjeta: TarjetaCredito
+        :return: bool
+        """
         while True:
             new = input("Introduce el pin nuevo (mínimo 4 dígitos): ")
             if new.isdigit() and len(new) >= 4:
@@ -135,7 +187,12 @@ class AplicacionTarjetaCredito:
         return True
 
     @staticmethod
-    def _realizar_pago(tarjeta: TarjetaCredito)->bool :
+    def _realizar_pago(tarjeta: TarjetaCredito)->bool:
+        """
+        Static Method que permite realizar un pago con una tarjeta siempre y cuando no supere el límite de pago de la tarjeta
+        :param tarjeta: TarjetaCredito
+        :return: bool
+        """
         if tarjeta.numero_movimientos() == 0:
             total_gastado = 0
         else:
@@ -172,7 +229,12 @@ class AplicacionTarjetaCredito:
             return False
 
     @staticmethod
-    def _consultar_movimientos(tarjeta :TarjetaCredito):
+    def _consultar_movimientos(tarjeta :TarjetaCredito)->None:
+        """
+        Static Method que muestra los n últimos movimientos de la tarjeta
+        :param tarjeta: TarjetaCredito
+        :return: None
+        """
         numero = tarjeta.numero_movimientos()
 
         if numero == 0:
@@ -198,9 +260,20 @@ class AplicacionTarjetaCredito:
             print(item)
 
     def existe_tarjeta_nif(self, nif: str) -> bool:
+        """
+        Funcion que comprueba si el nif ya existe en la tarjeta
+        :param nif: str con el nif de la futura tarjeta
+        :return: bool
+        """
         return any(tarjeta.nif == nif for tarjeta in self.lista_tarjetas)
 
     def crear_tarjeta(self) -> TarjetaCredito | None:
+        """
+        Funcion que muestra el flujo para crear una tarjeta de credito \n
+
+        Devuelve un objeto nuevo con todos los parámetros introducidos
+        :return: TarjetaCredito | None
+        """
         print("Introduce los siguientes datos para crear tarjeta")
 
         holder = input("Titular (15 - 80 caracteres): ")
@@ -210,14 +283,18 @@ class AplicacionTarjetaCredito:
             print("Ya existe una tarjeta asociada a ese NIF")
             return None
 
-        pin = input("PIN (4 dígitos minimo): ")
+        pin = int(input("PIN (4 dígitos minimo): "))
         limit = int(input("Limite de pago (500 - 5000): "))
-        card_num = input("Numero de la tarjeta de crédito (16 digitos): ")
+        card_num = int(input("Numero de la tarjeta de crédito (16 digitos): "))
 
         return TarjetaCredito(holder, nif, pin, limit, card_num)
 
     @staticmethod
     def mostrar_menu()->None:
+        """
+        Static Method que muestra por consola el menú principal del programa
+        :return: None
+        """
         print("\n--- MENÚ TARJETAS DE CRÉDITO ---")
         print("1. Crear tarjeta de crédito.")
         print("2. Eliminar tarjeta de crédito.")
@@ -227,6 +304,10 @@ class AplicacionTarjetaCredito:
 
     @staticmethod
     def mostrar_menu_gestion_tarjeta()->None:
+        """
+        Static Method que muestra por consola el menú de gestion de una tarjeta en específico
+        :return: None
+        """
         print("\n--- GESTIÓN DE TARJETA DE CRÉDITO ---")
         print("1. Mostrar el número de tarjeta completo.")
         print("2. Mostrar el nombre del titular de la tarjeta.")

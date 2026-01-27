@@ -6,7 +6,7 @@ from datetime import datetime
 class Movimiento:
     ALPHANUMERIC_EXPRESION = re.compile(r'^[a-zA-Z0-9 ]{5,50}$')
 
-    def __init__(self, cantidad: float, concepto:str):
+    def __init__(self, cantidad: float, concepto:str)->None:
         """
         Constructor de la clase Movimiento. \n
 
@@ -25,7 +25,7 @@ class Movimiento:
         self._fecha = datetime.now()
 
     @property
-    def cantidad(self):
+    def cantidad(self)->float:
         """
         Getter de cantidad
         :return: int
@@ -33,7 +33,7 @@ class Movimiento:
         return self._cantidad
 
     @property
-    def concepto(self):
+    def concepto(self)->str:
         """
         Getter de concepto
         :return: str
@@ -41,7 +41,7 @@ class Movimiento:
         return self._concepto
 
     @property
-    def fecha(self):
+    def fecha(self)->datetime:
         """
         Getter de fecha
         :return: datetime
@@ -49,7 +49,7 @@ class Movimiento:
         return self._fecha
 
     @concepto.setter
-    def concepto(self,concepto):
+    def concepto(self,concepto:str)->None:
         """
         Setter de concepto \n
 
@@ -61,7 +61,6 @@ class Movimiento:
             raise ValueError("El concepto ha de ser alfanumerico de 5 - 50 caracteres")
 
         self._concepto = concepto
-
 
     @staticmethod
     def check_positive(value :float)-> bool:
@@ -83,15 +82,14 @@ class Movimiento:
         """
         return bool(Movimiento.ALPHANUMERIC_EXPRESION.match(string))
 
-
-    def __str__(self):
+    def __str__(self)->str:
         """
         Metodo que devuelve un str con los atributos del objeto
         :return: str
         """
         return "Cantidad: " + str(self._cantidad) + ", Concepto: " + self._concepto + ", Fecha: " + str(self._fecha)
 
-    def __copy__(self):
+    def __copy__(self)->Movimiento:
         """
         Metodo que copia un objeto superficialmente
         :return: obj
@@ -100,7 +98,7 @@ class Movimiento:
         new_obj._fecha = copy.copy(self._fecha)
         return new_obj
 
-    def __eq__(self, other):
+    def __eq__(self, other:Movimiento)->bool:
         """
         Metodo que compara si un objeto es igual a otro
         :param other: obj

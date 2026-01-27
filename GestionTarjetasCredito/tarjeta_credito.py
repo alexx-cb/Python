@@ -16,7 +16,7 @@ class TarjetaCredito:
     PIN_EXPRESION = re.compile(r'^[0-9]{4,}$')
     CARD_EXPRESION = re.compile(r'^[0-9]{16}$')
 
-    def __init__(self, holder, nif, pin, limit, card_number):
+    def __init__(self, holder:str, nif:str, pin:int, limit:int, card_number:int)->None:
         """
         Constructor por defecto de la clase TarjetaCredito \n
 
@@ -109,7 +109,7 @@ class TarjetaCredito:
 
         return self._movements[-number:][::-1]
 
-    def numero_movimientos(self):
+    def numero_movimientos(self)->int:
         """
         Funcion que devuelve la longitud de la lista de movimientos
         :return: int
@@ -138,6 +138,11 @@ class TarjetaCredito:
 
     @staticmethod
     def _validar_nif(nif: str) -> bool:
+        """
+        Static Method que devuelve True si la letra del dni es válida
+        :param nif: str con el dni completo
+        :return: bool
+        """
         letras = "TRWAGMYFPDXBNJZSQVHLCKE"
         numero = int(nif[:8])
         letra_real = nif[8]
@@ -145,6 +150,11 @@ class TarjetaCredito:
 
     @staticmethod
     def _validar_nie(nie: str) -> bool:
+        """
+        Static Method que devuelve True si la letra del nie es correcta
+        :param nie: str con el nie completo
+        :return: bool
+        """
         letras = "TRWAGMYFPDXBNJZSQVHLCKE"
         conversion = {'X': '0', 'Y': '1', 'Z': '2'}
 
@@ -155,6 +165,11 @@ class TarjetaCredito:
 
     @staticmethod
     def _validar_cif(cif: str) -> bool:
+        """
+        Static Method que devuelve True si la letra del cif es correcta
+        :param cif: str con el cif completo
+        :return: bool
+        """
         letras_control = "JABCDEFGHI"
         letra = cif[0]
         numeros = cif[1:8]
@@ -265,63 +280,63 @@ class TarjetaCredito:
         return bool(TarjetaCredito.CARD_EXPRESION.fullmatch(str(card)))
 
     @property
-    def holder(self):
+    def holder(self)->str:
         """
         Devuelve el nombre del titular de la tarjeta.
         """
         return self._holder
 
     @property
-    def nif(self):
+    def nif(self)->str:
         """
         Devuelve el NIF del titular de la tarjeta.
         """
         return self._nif
 
     @property
-    def pin(self):
+    def pin(self)->int:
         """
         Devuelve el PIN asociado a la tarjeta.
         """
         return self._pin
 
     @property
-    def limit(self):
+    def limit(self)->int:
         """
         Devuelve el límite de crédito de la tarjeta.
         """
         return self._limit
 
     @property
-    def expiration_month(self):
+    def expiration_month(self)->str:
         """
         Devuelve el mes de caducidad de la tarjeta.
         """
         return self._expiration_month
 
     @property
-    def expiration_year(self):
+    def expiration_year(self)->int:
         """
         Devuelve el año de caducidad de la tarjeta.
         """
         return self._expiration_year
 
     @property
-    def card_number(self):
+    def card_number(self)->int:
         """
         Devuelve el número de la tarjeta.
         """
         return self._card_number
 
     @property
-    def cvv(self):
+    def cvv(self)->int:
         """
         Devuelve el código CVV de la tarjeta.
         """
         return self._cvv
 
     @limit.setter
-    def limit(self, limit):
+    def limit(self, limit:int)->None:
         """
         Establece el límite de crédito de la tarjeta. \n
 
@@ -335,7 +350,7 @@ class TarjetaCredito:
         self._limit = limit
 
     @pin.setter
-    def pin(self, pin):
+    def pin(self, pin:int)->None:
         """
         Establece el PIN de la tarjeta. \n
 
@@ -348,7 +363,7 @@ class TarjetaCredito:
             raise ValueError("El pin debe tener minimo 4 digitos")
         self._pin = pin
 
-    def __str__(self):
+    def __str__(self)->str:
         """
         Funcion que devuelve una cadena de texto con los atributos del objeto
         :return: str
@@ -358,10 +373,10 @@ class TarjetaCredito:
                 + ", " + str(self._expiration_year) + ", " + str(self._expiration_month) + ", " + str(
                     self._cvv) + ", " + str(self._movements))
 
-    def __copy__(self):
+    def __copy__(self)->TarjetaCredito:
         """
         Metodo que copia un objeto superficialmente
-        :return: obj
+        :return: TarjetaCredito
         """
         new_obj = type(self)(
             self._holder,
@@ -376,10 +391,10 @@ class TarjetaCredito:
         new_obj._movements = copy.copy(self._movements)
         return new_obj
 
-    def __eq__(self, other):
+    def __eq__(self, other:TarjetaCredito)->bool:
         """
         Metodo que compara si un objeto tiene la misma tarjeta de credito que otro
-        :param other: obj a comparar
+        :param other: TarjetaCredito a comparar
         :return: bool
         """
         if not isinstance(other, TarjetaCredito):
