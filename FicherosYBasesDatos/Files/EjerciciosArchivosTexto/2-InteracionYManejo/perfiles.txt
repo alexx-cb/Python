@@ -1,0 +1,24 @@
+nombre: jose
+edad: 24
+ciudad: madrid
+
+nombre: pepe
+edad: 14
+ciudad: cadi
+
+nombre: asdfasdf
+edad: 5
+ciudad: asdfsadf
+
+nombre: jose
+edad: 45
+ciudad: asdfsdf
+
+nombre: jsoe
+edad: 6
+ciudad: asdfsdafsdaf
+
+nombre: asdfsadf
+edad: 79
+ciudad: sadfsadfasfd
+
