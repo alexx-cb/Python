@@ -1,4 +1,5 @@
 import random
+import os
 
 
 class Constantes:
@@ -279,16 +280,131 @@ class JugadorMaquina(Jugador):
 class Juego:
     """Clase principal que controla el flujo del juego"""
 
+    ARCHIVO_PARTIDA = "partida_conecta4.txt"
+
     def __init__(self):
         self.tablero = None
         self.jugadores = []
         self.turno_actual = 0
+        self.modo = None
 
     def configurar(self):
         """Configura el juego: modo, jugadores y tablero"""
-        modo = self._seleccionar_modo()
-        self._crear_jugadores(modo)
+        # Verificar si existe una partida guardada
+        if self.existe_partida_guardada():
+            respuesta = input("Se ha encontrado una partida guardada. ¿Desea continuar? (s/n): ").lower()
+            if respuesta == 's':
+                self.cargar_partida()
+                return
+            else:
+                # Eliminar partida guardada si se inicia una nueva
+                if os.path.exists(self.ARCHIVO_PARTIDA):
+                    os.remove(self.ARCHIVO_PARTIDA)
+
+        # Nueva partida
+        self.modo = self._seleccionar_modo()
+        self._crear_jugadores(self.modo)
         self.tablero = self._crear_tablero()
+
+    def existe_partida_guardada(self):
+        """Comprueba si existe un archivo de partida guardada"""
+        return os.path.exists(self.ARCHIVO_PARTIDA)
+
+    def cargar_partida(self):
+        """Carga una partida desde el archivo guardado"""
+        try:
+            with open(self.ARCHIVO_PARTIDA, 'r', encoding='utf-8') as archivo:
+                lineas = archivo.readlines()
+
+
+                config_tablero = lineas[0].strip().split(',')
+                filas = int(config_tablero[0])
+                columnas = int(config_tablero[1])
+                fichas_linea = int(config_tablero[2])
+
+
+                self.tablero = Tablero(filas, columnas, fichas_linea)
+
+
+                self.modo = lineas[1].strip()
+
+
+                datos_j1 = lineas[2].strip().split(',')
+                nombre_j1 = datos_j1[0]
+                ficha_j1 = int(datos_j1[1])
+
+                datos_j2 = lineas[3].strip().split(',')
+                nombre_j2 = datos_j2[0]
+                ficha_j2 = int(datos_j2[1])
+                tipo_j2 = datos_j2[2]  # "HUMANO" o "MAQUINA"
+
+                jugador1 = JugadorHumano(nombre_j1, ficha_j1)
+                self.jugadores.append(jugador1)
+
+                if tipo_j2 == "HUMANO":
+                    jugador2 = JugadorHumano(nombre_j2, ficha_j2)
+                else:
+                    dificultad = int(datos_j2[3])
+                    jugador2 = JugadorMaquina(nombre_j2, ficha_j2, dificultad)
+                self.jugadores.append(jugador2)
+
+                self.turno_actual = int(lineas[4].strip())
+
+                for i in range(filas):
+                    fila_datos = lineas[5 + i].strip().split(',')
+                    for j in range(columnas):
+                        self.tablero.grid[i][j] = int(fila_datos[j])
+
+                print(f"\n¡Partida cargada correctamente!")
+                print(f"Continúa el turno de {self.jugadores[self.turno_actual].nombre}\n")
+
+        except Exception as e:
+            print(f"Error al cargar la partida: {e}")
+            print("Iniciando una nueva partida...")
+            self.modo = self._seleccionar_modo()
+            self._crear_jugadores(self.modo)
+            self.tablero = self._crear_tablero()
+
+    def guardar_partida(self):
+        """Guarda el estado actual de la partida en un archivo"""
+        try:
+            with open(self.ARCHIVO_PARTIDA, 'w', encoding='utf-8') as archivo:
+                archivo.write(f"{self.tablero.filas},{self.tablero.columnas},{self.tablero.fichas_linea}\n")
+
+                archivo.write(f"{self.modo}\n")
+
+                j1 = self.jugadores[0]
+                archivo.write(f"{j1.nombre},{j1.ficha}\n")
+
+                j2 = self.jugadores[1]
+                if isinstance(j2, JugadorMaquina):
+                    archivo.write(f"{j2.nombre},{j2.ficha},MAQUINA,{j2.dificultad}\n")
+                else:
+                    archivo.write(f"{j2.nombre},{j2.ficha},HUMANO\n")
+
+
+                archivo.write(f"{self.turno_actual}\n")
+
+
+                for fila in self.tablero.grid:
+                    archivo.write(','.join(str(celda) for celda in fila) + '\n')
+
+                archivo.flush()
+                os.fsync(archivo.fileno())
+
+            print("Partida guardada correctamente.")
+
+        except Exception as e:
+            print(f"Error al guardar la partida: {e}")
+
+    def eliminar_partida_guardada(self):
+        """Elimina el archivo de partida guardada"""
+        try:
+            if os.path.exists(self.ARCHIVO_PARTIDA):
+                os.remove(self.ARCHIVO_PARTIDA)
+                print("Archivo de partida eliminado.")
+        except Exception as e:
+            print(f"Error al eliminar la partida: {e}")
 
     @staticmethod
     def _seleccionar_modo():
@@ -391,16 +507,20 @@ class Juego:
             if self.tablero.comprobar_linea(columna_indice):
                 print(f"PARTIDA FINALIZADA\n"
                       f"HA GANADO: {jugador_actual.nombre}\n")
+                self.eliminar_partida_guardada()
                 break
 
             # Comprobar empate
             if not self.tablero.hay_casillas_libres():
                 print(f"PARTIDA FINALIZADA\n"
                       f"HAY UN EMPATE")
+                self.eliminar_partida_guardada()
                 break
 
             # Cambiar turno
             self.turno_actual = 1 - self.turno_actual
+
+            self.guardar_partida()
 
     def iniciar(self):
         """Método principal para iniciar el juego"""
