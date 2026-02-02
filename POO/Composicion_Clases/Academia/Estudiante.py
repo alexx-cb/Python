@@ -1,6 +1,6 @@
 import copy
 
-from Asignatura import Asignatura
+from .Asignatura import Asignatura
 
 class Estudiante:
     def __init__(self, nombre, apellido1, apellido2, lista_asignaturas = None):

@@ -1,0 +1,17 @@
+[
+    {
+        "nombre": "Jose",
+        "apellido1": "Perez",
+        "apellido2": "Martinez"
+    },
+    {
+        "nombre": "Rosa",
+        "apellido1": "López",
+        "apellido2": "Pasadas"
+    },
+    {
+        "nombre": "Alejandro",
+        "apellido1": "Valdivia",
+        "apellido2": "Jimenez"
+    }
+]
