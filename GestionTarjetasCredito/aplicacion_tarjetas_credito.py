@@ -1,7 +1,11 @@
+import json
+import os
+
 from tarjeta_credito import TarjetaCredito
 
 class AplicacionTarjetaCredito:
 
+    PATH = "tarjetas.json"
     def __init__(self)->None:
         """
         Constructor de la clase AplicacionTarjetaCredito \n
@@ -19,6 +23,8 @@ class AplicacionTarjetaCredito:
         """
         opcion =0
 
+        self.cargar_tarjetas(self.PATH)
+
         opciones = {
             1: lambda: self.agregar_tarjeta(),
             2: lambda : self.eliminar_tarjeta_nif(),
@@ -29,7 +35,7 @@ class AplicacionTarjetaCredito:
         while opcion != 5:
             AplicacionTarjetaCredito.mostrar_menu()
             try:
-                opcion = int(input("Introduce una opcion"))
+                opcion = int(input("Introduce una opcion").strip())
 
             except ValueError:
                 print("Introduce una opcion valida")
@@ -37,6 +43,7 @@ class AplicacionTarjetaCredito:
 
 
             if opcion == 5:
+                self.guardar_json(self.PATH)
                 break
 
             accion = opciones.get(opcion)
@@ -44,6 +51,37 @@ class AplicacionTarjetaCredito:
                 accion()
             else:
                 print("Opcion no valida, introduce una opcion valida")
+
+    def cargar_tarjetas(self, path):
+        if not os.path.exists(path):
+            self.lista_tarjetas = []
+            return
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                contenido = f.read().strip()
+                if not contenido:
+                    self.lista_tarjetas = []
+                    return
+
+                data = json.loads(contenido)
+
+            self.lista_tarjetas = [TarjetaCredito.from_dict(t) for t in data]
+
+        except json.JSONDecodeError as e:
+            print(f"Error al cargar el archivo de tarjetas: {e}")
+            self.lista_tarjetas = []
+
+    def guardar_json(self, path):
+        try:
+            data = [t.to_dict() for t in self.lista_tarjetas]
+
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+
+        except Exception as e:
+            print(f"Error al guardar las tarjetas: {e}")
+
 
     def agregar_tarjeta(self)->None:
         """

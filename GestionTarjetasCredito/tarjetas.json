@@ -1,0 +1,19 @@
+[
+    {
+        "titular": "skdlfhskljhfsal sfasadfsafd",
+        "nif": "74092314E",
+        "pin": 1234,
+        "limite": 2500,
+        "numero": 4111111111111111,
+        "mes_expiracion": "02",
+        "año_expiracion": 2031,
+        "cvv": 782,
+        "movimientos": [
+            {
+                "cantidad": 500.0,
+                "concepto": "aksjdfhsklfhsafd",
+                "fecha": "2026-02-08T17:13:39.550411"
+            }
+        ]
+    }
+]

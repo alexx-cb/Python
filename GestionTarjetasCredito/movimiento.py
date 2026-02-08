@@ -6,7 +6,7 @@ from datetime import datetime
 class Movimiento:
     ALPHANUMERIC_EXPRESION = re.compile(r'^[a-zA-Z0-9 ]{5,50}$')
 
-    def __init__(self, cantidad: float, concepto:str)->None:
+    def __init__(self, cantidad: float, concepto:str, fecha=None)->None:
         """
         Constructor de la clase Movimiento. \n
 
@@ -22,7 +22,35 @@ class Movimiento:
 
         self._cantidad = cantidad
         self._concepto = concepto
-        self._fecha = datetime.now()
+
+        if fecha is None:
+            self._fecha = datetime.now()
+        elif isinstance(fecha, str):
+            self._fecha = datetime.fromisoformat(fecha)
+        elif isinstance(fecha, datetime):
+            self._fecha = fecha
+        else:
+            raise TypeError("Fecha debe ser datetime o str en formato ISO")
+
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Crea un Movimiento desde un diccionario, convirtiendo la fecha a datetime si es string.
+        """
+        return cls(
+            cantidad=data["cantidad"],
+            concepto=data["concepto"],
+            fecha=data.get("fecha")
+        )
+
+    def to_dict(self)->dict:
+
+        movimiento = {
+            "cantidad" : self._cantidad,
+            "concepto" : self._concepto,
+            "fecha" : self._fecha.isoformat() if isinstance(self._fecha, datetime) else self._fecha,
+        }
+        return movimiento
 
     @property
     def cantidad(self)->float:

@@ -58,6 +58,40 @@ class TarjetaCredito:
         self._cvv = random.randint(100, 999)
         self._movements = []
 
+    @classmethod
+    def from_dict(cls, data):
+        tarjeta = cls(
+            holder=data["titular"],
+            nif=data["nif"],
+            pin=data["pin"],
+            limit=data["limite"],
+            card_number=data["numero"],
+        )
+
+
+        tarjeta._expiration_month = data.get("mes_expiracion")
+        tarjeta._expiration_month = data.get("año_expiracion")
+        tarjeta._cvv = data.get("cvv")
+
+        tarjeta.movements = [Movimiento.from_dict(m) for m in data.get("movimientos", [])]
+
+        return tarjeta
+
+    def to_dict(self)->dict:
+
+        tarjeta ={
+            "titular": self._holder,
+            "nif": self._nif,
+            "pin": self._pin,
+            "limite": self._limit,
+            "numero": self._card_number,
+            "mes_expiracion": self._expiration_month,
+            "año_expiracion": self._expiration_year,
+            "cvv": self._cvv,
+            "movimientos": [Movimiento.to_dict(mov) for mov in self._movements],
+        }
+        return tarjeta
+
     def pagar(self, cantidad: float, concepto: str) -> bool:
         """
         Funcion que permite hacer un pago con la tarjeta. \n
