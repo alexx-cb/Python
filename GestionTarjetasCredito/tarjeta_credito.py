@@ -68,12 +68,36 @@ class TarjetaCredito:
             card_number=data["numero"],
         )
 
-
         tarjeta._expiration_month = data.get("mes_expiracion")
-        tarjeta._expiration_month = data.get("año_expiracion")
+        tarjeta._expiration_year = data.get("año_expiracion")  # Corregido: era _expiration_month
         tarjeta._cvv = data.get("cvv")
 
-        tarjeta.movements = [Movimiento.from_dict(m) for m in data.get("movimientos", [])]
+        tarjeta._movements = [Movimiento.from_dict(m) for m in data.get("movimientos", [])]
+
+        return tarjeta
+
+    @classmethod
+    def from_db_row(cls, row, movimientos=[]):
+        """
+        Crea una TarjetaCredito desde una fila de la base de datos
+        :param row: tupla con (numero_tarjeta, titular, nif, pin, limite, mes_caducidad, año_caducidad, cvv)
+        :param movimientos: lista de objetos Movimiento
+        :return: TarjetaCredito
+        """
+        numero_tarjeta, titular, nif, pin, limite, mes_caducidad, año_caducidad, cvv = row
+
+        tarjeta = cls(
+            holder=titular,
+            nif=nif,
+            pin=pin,
+            limit=limite,
+            card_number=int(numero_tarjeta)
+        )
+
+        tarjeta._expiration_month = mes_caducidad
+        tarjeta._expiration_year = año_caducidad
+        tarjeta._cvv = cvv
+        tarjeta._movements = movimientos
 
         return tarjeta
 
@@ -219,7 +243,7 @@ class TarjetaCredito:
         total = suma_par + suma_impar
         digito = (10 - (total % 10)) % 10
 
-        if letra in "PQRSNW_attachment":
+        if letra in "PQRSN":
             return control == letras_control[digito]
         elif letra in "ABEH":
             return control == str(digito)
@@ -368,6 +392,20 @@ class TarjetaCredito:
         Devuelve el código CVV de la tarjeta.
         """
         return self._cvv
+
+    @property
+    def movements(self):
+        """
+        Devuelve la lista de movimientos
+        """
+        return self._movements
+
+    @movements.setter
+    def movements(self, value):
+        """
+        Establece la lista de movimientos
+        """
+        self._movements = value
 
     @limit.setter
     def limit(self, limit:int)->None:

@@ -2,6 +2,8 @@ import json
 import os
 
 from tarjeta_credito import TarjetaCredito
+from movimiento import Movimiento
+from database.database import DataBase, TarjetaDB, MovimientosDB
 
 class AplicacionTarjetaCredito:
 
@@ -10,9 +12,12 @@ class AplicacionTarjetaCredito:
         """
         Constructor de la clase AplicacionTarjetaCredito \n
 
-        Inicializa una list para agregar las TarjetaCredito
+        Inicializa una list para agregar las TarjetaCredito y la base de datos
         """
         self.lista_tarjetas = []
+        self.db = DataBase()
+        self.tarjeta_db = TarjetaDB(self.db)
+        self.movimientos_db = MovimientosDB(self.db)
 
     def main(self)->None:
         """
@@ -23,27 +28,32 @@ class AplicacionTarjetaCredito:
         """
         opcion =0
 
-        self.cargar_tarjetas(self.PATH)
+        # Cargar tarjetas desde la base de datos
+        self.cargar_tarjetas_db()
+
+        # Código comentado para persistencia JSON
+        # self.cargar_tarjetas(self.PATH)
 
         opciones = {
             1: lambda: self.agregar_tarjeta(),
-            2: lambda : self.eliminar_tarjeta_nif(),
-            3: lambda : self.gestionar_tarjeta(input("Introduce el nif de la tarjeta")),
-            4: lambda : print(self.gasto_total_tarjetas())
+            2: lambda: self.eliminar_tarjeta_nif(),
+            3: lambda: self.gestionar_tarjeta(input("Introduce el nif de la tarjeta: ")),
+            4: lambda: print(self.gasto_total_tarjetas())
         }
 
         while opcion != 5:
             AplicacionTarjetaCredito.mostrar_menu()
             try:
-                opcion = int(input("Introduce una opcion").strip())
+                opcion = int(input("Introduce una opcion: ").strip())
 
             except ValueError:
                 print("Introduce una opcion valida")
                 continue
 
-
             if opcion == 5:
-                self.guardar_json(self.PATH)
+                # Código comentado para persistencia JSON
+                # self.guardar_json(self.PATH)
+                print("Saliendo del programa. Los datos están guardados en la base de datos.")
                 break
 
             accion = opciones.get(opcion)
@@ -52,6 +62,39 @@ class AplicacionTarjetaCredito:
             else:
                 print("Opcion no valida, introduce una opcion valida")
 
+        self.db.close()
+
+    def cargar_tarjetas_db(self):
+        """
+        Carga todas las tarjetas desde la base de datos
+        """
+        try:
+            tarjetas_rows = self.tarjeta_db.select_all()
+            self.lista_tarjetas = []
+
+            for row in tarjetas_rows:
+                numero_tarjeta = row[0]
+                movimientos_rows = self.movimientos_db.select_by_tarjeta(numero_tarjeta)
+                movimientos = []
+
+                for mov_row in movimientos_rows:
+                    movimientos.append(Movimiento(
+                        cantidad=mov_row[2],
+                        concepto=mov_row[3],
+                        fecha=mov_row[4]
+                    ))
+
+
+                tarjeta = TarjetaCredito.from_db_row(row, movimientos)
+                self.lista_tarjetas.append(tarjeta)
+
+            print(f"Se han cargado {len(self.lista_tarjetas)} tarjetas desde la base de datos")
+        except Exception as e:
+            print(f"Error al cargar tarjetas de la base de datos: {e}")
+            self.lista_tarjetas = []
+
+    # Funciones comentadas para persistencia JSON
+    """
     def cargar_tarjetas(self, path):
         if not os.path.exists(path):
             self.lista_tarjetas = []
@@ -81,7 +124,7 @@ class AplicacionTarjetaCredito:
 
         except Exception as e:
             print(f"Error al guardar las tarjetas: {e}")
-
+    """
 
     def agregar_tarjeta(self)->None:
         """
@@ -92,7 +135,12 @@ class AplicacionTarjetaCredito:
             tarjeta = self.crear_tarjeta()
             if tarjeta:
                 self.lista_tarjetas.append(tarjeta)
-                print("Tarjeta creada correctamente")
+
+                if self.tarjeta_db.insert(tarjeta):
+                    print("Tarjeta creada correctamente y guardada en la base de datos")
+                else:
+                    print("Tarjeta creada pero hubo un error al guardarla en la base de datos")
+                    self.lista_tarjetas.pop()
         except ValueError as e:
             print(f"Error al crear la tarjeta: {e}")
 
@@ -117,8 +165,13 @@ class AplicacionTarjetaCredito:
         :return: bool
         """
         try:
-            self.lista_tarjetas.pop(index)
-            return True
+            tarjeta = self.lista_tarjetas[index]
+            if self.tarjeta_db.delete(tarjeta.card_number):
+                self.lista_tarjetas.pop(index)
+                return True
+            else:
+                print("Error al eliminar de la base de datos")
+                return False
         except IndexError:
             return False
 
@@ -185,7 +238,7 @@ class AplicacionTarjetaCredito:
             self.mostrar_menu_gestion_tarjeta()
 
             try:
-                opcion = int(input("Seleccione una opción"))
+                opcion = int(input("Seleccione una opción: "))
             except ValueError:
                 print("Opcion no valida, introduce un numero del 1 - 8")
                 continue
@@ -208,24 +261,31 @@ class AplicacionTarjetaCredito:
         """
         return TarjetaCredito.gastado(tarjeta)
 
-    @staticmethod
-    def _modificar_pin(tarjeta: TarjetaCredito)->bool:
+    def _modificar_pin(self, tarjeta: TarjetaCredito) -> bool:
         """
-        Static Method que modifica el pin de la tarjeta devuelve True si se ha modificado con éxito
+        Modifica el pin de la tarjeta devuelve True si se ha modificado con éxito
         :param tarjeta: TarjetaCredito
         :return: bool
         """
         while True:
             new = input("Introduce el pin nuevo (mínimo 4 dígitos): ")
             if new.isdigit() and len(new) >= 4:
-                tarjeta.pin = new
-                break
+                try:
+                    nuevo_pin = int(new)
+                    if self.tarjeta_db.update_pin(tarjeta.card_number, nuevo_pin):
+                        tarjeta.pin = nuevo_pin
+                        print("Pin modificado correctamente")
+                        return True
+                    else:
+                        print("Error al actualizar el PIN en la base de datos")
+                        return False
+                except ValueError as e:
+                    print(f"Error: {e}")
+                    return False
+            else:
+                print("El PIN debe tener al menos 4 dígitos numéricos")
 
-        print("Pin modificado correctamente")
-        return True
-
-    @staticmethod
-    def _realizar_pago(tarjeta: TarjetaCredito)->bool:
+    def _realizar_pago(self, tarjeta: TarjetaCredito) -> bool:
         """
         Static Method que permite realizar un pago con una tarjeta siempre y cuando no supere el límite de pago de la tarjeta
         :param tarjeta: TarjetaCredito
@@ -260,8 +320,13 @@ class AplicacionTarjetaCredito:
 
         try:
             tarjeta.pagar(pago, concepto)
-            print(f"Pago realizado con éxito: {pago}€ - {concepto}")
-            return True
+            movimiento = tarjeta.movements[-1]
+            if self.movimientos_db.insert(movimiento, tarjeta.card_number):
+                print(f"Pago realizado con éxito: {pago}€ - {concepto}")
+                return True
+            else:
+                print("Pago registrado en memoria pero error al guardar en la base de datos")
+                return False
         except ValueError as e:
             print(f"No se pudo realizar el pago: {e}")
             return False
@@ -277,7 +342,7 @@ class AplicacionTarjetaCredito:
 
         if numero == 0:
             print("La tarjeta de credito no tiene movimientos")
-
+            return
 
         print(f"la lista de movimientos tiene una longitud de: {numero}")
         print("Cuantos movimientos quiere comprobar?, se mostraran primero los últimos movimientos realizados")
@@ -288,11 +353,12 @@ class AplicacionTarjetaCredito:
                 if 0 <= n <= numero:
                     break
             except ValueError:
-                print(f"Introduce un numero válido entre 0 y {numero}")
+                pass
+            print(f"Introduce un numero válido entre 0 y {numero}")
 
 
         lista = tarjeta.movimientos(n)
-        print("Movimientos de la tarjeta")
+        print("\nMovimientos de la tarjeta:")
 
         for item in lista:
             print(item)
@@ -303,7 +369,10 @@ class AplicacionTarjetaCredito:
         :param nif: str con el nif de la futura tarjeta
         :return: bool
         """
-        return any(tarjeta.nif == nif for tarjeta in self.lista_tarjetas)
+        # Verificar tanto en memoria como en la base de datos
+        if any(tarjeta.nif == nif for tarjeta in self.lista_tarjetas):
+            return True
+        return self.tarjeta_db.exists_nif(nif)
 
     def crear_tarjeta(self) -> TarjetaCredito | None:
         """
@@ -312,7 +381,7 @@ class AplicacionTarjetaCredito:
         Devuelve un objeto nuevo con todos los parámetros introducidos
         :return: TarjetaCredito | None
         """
-        print("Introduce los siguientes datos para crear tarjeta")
+        print("\nIntroduce los siguientes datos para crear tarjeta")
 
         holder = input("Titular (15 - 80 caracteres): ")
         nif = input("NIF, CIF o NIE: ")
