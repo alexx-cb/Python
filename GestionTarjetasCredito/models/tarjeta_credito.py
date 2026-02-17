@@ -3,7 +3,7 @@ import random
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import re
-from movimiento import Movimiento
+from models.movimiento import Movimiento
 
 
 class TarjetaCredito:

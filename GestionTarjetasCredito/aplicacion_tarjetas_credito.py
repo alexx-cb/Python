@@ -1,8 +1,5 @@
-import json
-import os
-
-from tarjeta_credito import TarjetaCredito
-from movimiento import Movimiento
+from models.tarjeta_credito import TarjetaCredito
+from models.movimiento import Movimiento
 from database.database import DataBase, TarjetaDB, MovimientosDB
 
 class AplicacionTarjetaCredito:
