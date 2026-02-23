@@ -110,7 +110,7 @@ class TarjetaService:
         tarjeta.pagar(cantidad, concepto)
 
         movimiento = tarjeta.movements[-1]
-        self.movimiento_db.insert(movimiento)
+        self.movimiento_db.insert(movimiento, tarjeta.card_number)
 
         return movimiento
 

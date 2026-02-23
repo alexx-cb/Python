@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Página no encontrada{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-page { max-width: 600px; margin: 0 auto; padding: 80px 24px; text-align: center; }
+    .error-page__code { font-size: 6rem; font-weight: 700; color: var(--accent); margin-bottom: 16px; font-family: 'DM Serif Display', serif; }
+    .error-page__title { font-size: 2rem; margin-bottom: 12px; font-family: 'DM Serif Display', serif; }
+    .error-page__description { color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+    .btn { display: inline-block; padding: 12px 24px; background: var(--accent); color: #000; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .btn:hover { background: #d4b87a; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-page__code">404</div>
+    <h1 class="error-page__title">Página no encontrada</h1>
+    <p class="error-page__description">
+        Lo sentimos, la página que buscas no existe o ha sido movida.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn">← Volver al inicio</a>
+</div>
+{% endblock %}

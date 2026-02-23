@@ -276,7 +276,7 @@
                 <a href="{{ url_for('tarjetas.detalle_tarjeta', nif=tarjeta.nif) }}" class="recent-card">
                     <div class="recent-card__info">
                         <h4>{{ tarjeta.holder }}</h4>
-                        <p>**** {{ tarjeta.card_number|string|slice(-4, None) }} • Disponible: {{ "%.2f"|format(disponible) }}€</p>
+                        <p>**** **** **** {{ (tarjeta.card_number|string)[-4:] }} • Disponible: {{ "%.2f"|format(disponible) }}€</p>
                     </div>
                     <div class="recent-card__amount">{{ tarjeta.limit }}€</div>
                 </a>

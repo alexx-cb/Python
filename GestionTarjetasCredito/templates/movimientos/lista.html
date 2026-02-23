@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Movimientos — CardVault{% endblock %}
+
+{% block extra_css %}
+<style>
+    .movimientos-page { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+    .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+    .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 4px; }
+    .page-header p { color: var(--muted); font-size: 0.9rem; }
+
+    .btn { padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; border: 1px solid var(--border); color: var(--muted); }
+    .btn:hover { color: var(--text); border-color: var(--muted); }
+
+    .movimientos-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+    .movimientos-table { width: 100%; border-collapse: collapse; }
+    .movimientos-table thead { background: var(--bg); }
+    .movimientos-table th { padding: 14px 20px; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+    .movimientos-table td { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .movimientos-table tr:hover { background: rgba(255,255,255,0.02); }
+
+    .mov-fecha { color: var(--muted); font-size: 0.85rem; }
+    .mov-concepto { font-weight: 500; }
+    .mov-cantidad { font-size: 1.1rem; font-weight: 600; color: var(--accent); text-align: right; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="movimientos-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Movimientos</h1>
+            <p>{{ tarjeta.holder }} — **** **** **** {{ (tarjeta.card_number|string)[-4:] }}</p>
+        </div>
+        <a href="{{ url_for('tarjetas.detalle_tarjeta', nif=tarjeta.nif) }}" class="btn">← Volver</a>
+    </div>
+
+    {% if movimientos %}
+        <div class="movimientos-container">
+            <table class="movimientos-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th style="text-align: right;">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mov in movimientos %}
+                        <tr>
+                            <td class="mov-fecha">{{ mov.fecha }}</td>
+                            <td class="mov-concepto">{{ mov.concepto }}</td>
+                            <td class="mov-cantidad">{{ "%.2f"|format(mov.cantidad) }}€</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon">📋</div>
+            <p>No hay movimientos registrados en esta tarjeta.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

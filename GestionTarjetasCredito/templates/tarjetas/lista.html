@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Tarjetas — CardVault</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
+{% extends 'base.html' %}
+
+{% block title %}Mis Tarjetas — CardVault{% endblock %}
+
+{% block extra_css %}
+<style>
         /* ── Variables ── */
         :root {
             --bg:        #0d0f14;
@@ -446,8 +444,9 @@
             .cards-grid { grid-template-columns: 1fr; }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 
 <div class="page">
 
@@ -585,6 +584,9 @@
 </div>
 
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
     function openModal(nif, holder) {
         document.getElementById('modal-holder').textContent = holder;
@@ -601,6 +603,4 @@
         if (e.target === this) closeModal();
     });
 </script>
-
-</body>
-</html>
+{% endblock %}

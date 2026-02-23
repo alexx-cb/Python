@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Tarjeta — CardVault{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-page {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 48px 24px;
+    }
+
+    .form-header {
+        margin-bottom: 32px;
+    }
+
+    .form-header h1 {
+        font-family: 'DM Serif Display', serif;
+        font-size: 2rem;
+        margin-bottom: 8px;
+        font-weight: 400;
+    }
+
+    .form-header p {
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    .form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .form-label span {
+        color: var(--danger);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .form-input::placeholder {
+        color: var(--muted);
+        opacity: 0.6;
+    }
+
+    .form-help {
+        margin-top: 6px;
+        font-size: 0.8rem;
+        color: var(--muted);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: #0d0f14;
+        flex: 1;
+    }
+
+    .btn-primary:hover {
+        background: #d4b87a;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        color: var(--text);
+        border-color: var(--muted);
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        font-size: 0.9rem;
+    }
+
+    .alert-danger {
+        background: rgba(224,85,85,0.1);
+        border: 1px solid rgba(224,85,85,0.25);
+        color: var(--danger);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-page">
+
+    <div class="form-header">
+        <h1>Nueva tarjeta</h1>
+        <p>Completa los datos para registrar una nueva tarjeta de crédito</p>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card">
+        <form method="POST" action="{{ url_for('tarjetas.crear_tarjeta') }}">
+
+            <!-- Titular -->
+            <div class="form-group">
+                <label class="form-label" for="holder">
+                    Titular <span>*</span>
+                </label>
+                <input
+                    type="text"
+                    id="holder"
+                    name="holder"
+                    class="form-input"
+                    placeholder="Nombre completo del titular"
+                    required
+                    minlength="15"
+                    maxlength="80"
+                    pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+"
+                    value="{{ datos.holder if datos else '' }}"
+                >
+                <p class="form-help">Entre 15 y 80 caracteres, solo letras y espacios</p>
+            </div>
+
+            <!-- NIF -->
+            <div class="form-group">
+                <label class="form-label" for="nif">
+                    NIF/CIF/NIE <span>*</span>
+                </label>
+                <input
+                    type="text"
+                    id="nif"
+                    name="nif"
+                    class="form-input"
+                    placeholder="12345678A"
+                    required
+                    value="{{ datos.nif if datos else '' }}"
+                >
+                <p class="form-help">Documento de identidad fiscal</p>
+            </div>
+
+            <!-- PIN -->
+            <div class="form-group">
+                <label class="form-label" for="pin">
+                    PIN <span>*</span>
+                </label>
+                <input
+                    type="password"
+                    id="pin"
+                    name="pin"
+                    class="form-input"
+                    placeholder="••••"
+                    required
+                    pattern="[0-9]{4,}"
+                    minlength="4"
+                    value="{{ datos.pin if datos else '' }}"
+                >
+                <p class="form-help">Mínimo 4 dígitos numéricos</p>
+            </div>
+
+            <!-- Límite -->
+            <div class="form-group">
+                <label class="form-label" for="limit">
+                    Límite de crédito <span>*</span>
+                </label>
+                <input
+                    type="number"
+                    id="limit"
+                    name="limit"
+                    class="form-input"
+                    placeholder="1000"
+                    required
+                    min="500"
+                    max="5000"
+                    step="1"
+                    value="{{ datos.limit if datos else '' }}"
+                >
+                <p class="form-help">Entre 500€ y 5.000€</p>
+            </div>
+
+            <!-- Número de tarjeta -->
+            <div class="form-group">
+                <label class="form-label" for="card_number">
+                    Número de tarjeta <span>*</span>
+                </label>
+                <input
+                    type="text"
+                    id="card_number"
+                    name="card_number"
+                    class="form-input"
+                    placeholder="1234567890123456"
+                    required
+                    pattern="[0-9]{16}"
+                    minlength="16"
+                    maxlength="16"
+                    value="{{ datos.card_number if datos else '' }}"
+                >
+                <p class="form-help">16 dígitos (debe pasar validación Luhn)</p>
+            </div>
+
+            <!-- Acciones -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Crear tarjeta
+                </button>
+                <a href="{{ url_for('tarjetas.listar_tarjetas') }}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}

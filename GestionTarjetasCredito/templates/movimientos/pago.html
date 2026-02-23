@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Realizar Pago — CardVault{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-page { max-width: 600px; margin: 0 auto; padding: 48px 24px; }
+    .form-header { margin-bottom: 32px; }
+    .form-header h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 8px; }
+    .form-header p { color: var(--muted); }
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+
+    .info-box { background: rgba(200,169,110,0.1); border: 1px solid rgba(200,169,110,0.25); padding: 16px; border-radius: 8px; margin-bottom: 24px; }
+    .info-box__row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+    .info-box__row:last-child { margin-bottom: 0; font-weight: 600; color: var(--accent); }
+
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
+    .form-label span { color: var(--danger); }
+    .form-input { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+    .form-help { margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 32px; }
+    .btn { padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: #000; flex: 1; justify-content: center; }
+    .btn-primary:hover { background: #d4b87a; }
+    .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; }
+    .alert-danger { background: rgba(224,85,85,0.1); border: 1px solid rgba(224,85,85,0.25); color: var(--danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-page">
+
+    <div class="form-header">
+        <h1>Realizar pago</h1>
+        <p>Tarjeta: {{ tarjeta.holder }} — **** {{ tarjeta.card_number|string|slice(-4, None) }}</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card">
+
+        <div class="info-box">
+            <div class="info-box__row">
+                <span>Límite de la tarjeta:</span>
+                <span>{{ tarjeta.limit }}€</span>
+            </div>
+            <div class="info-box__row">
+                <span>Disponible para gastar:</span>
+                <span>{{ "%.2f"|format(limite_restante) }}€</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('movimientos.realizar_pago', nif=tarjeta.nif) }}">
+
+            <div class="form-group">
+                <label class="form-label" for="cantidad">
+                    Cantidad <span>*</span>
+                </label>
+                <input
+                    type="number"
+                    id="cantidad"
+                    name="cantidad"
+                    class="form-input"
+                    placeholder="0.00"
+                    required
+                    min="0.01"
+                    max="{{ limite_restante }}"
+                    step="0.01"
+                >
+                <p class="form-help">Máximo: {{ "%.2f"|format(limite_restante) }}€</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="concepto">
+                    Concepto <span>*</span>
+                </label>
+                <input
+                    type="text"
+                    id="concepto"
+                    name="concepto"
+                    class="form-input"
+                    placeholder="Descripción del pago"
+                    required
+                    minlength="5"
+                    maxlength="50"
+                    pattern="[a-zA-Z0-9 ]+"
+                >
+                <p class="form-help">Entre 5 y 50 caracteres alfanuméricos</p>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    💳 Realizar pago
+                </button>
+                <a href="{{ url_for('tarjetas.detalle_tarjeta', nif=tarjeta.nif) }}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}

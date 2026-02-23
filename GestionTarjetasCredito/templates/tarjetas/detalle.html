@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tarjeta.holder }} — CardVault{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detalle { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+    .detalle__header { margin-bottom: 32px; }
+    .detalle__title { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 8px; }
+    .detalle__subtitle { color: var(--muted); }
+
+    .card-visual { background: linear-gradient(135deg, #1a1f2e 0%, #252c3d 100%); padding: 32px; border-radius: 16px; margin-bottom: 32px; color: white; position: relative; overflow: hidden; }
+    .card-visual::before { content: ''; position: absolute; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(200,169,110,0.2), transparent); top: -50px; right: -50px; }
+    .card-number { font-size: 1.5rem; letter-spacing: 0.2em; margin-bottom: 20px; font-family: monospace; }
+    .card-info { display: flex; gap: 40px; margin-top: 24px; font-size: 0.85rem; }
+
+    .sections { display: grid; gap: 24px; }
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .section__title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+    .stat-box { background: var(--bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); }
+    .stat-box__label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+    .stat-box__value { font-size: 1.3rem; font-weight: 600; }
+    .stat-box__value--accent { color: var(--accent); }
+
+    .form-inline { display: flex; gap: 12px; align-items: flex-end; }
+    .form-inline .form-group { flex: 1; margin: 0; }
+    .form-label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 500; }
+    .form-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+
+    .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { background: #d4b87a; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-small { padding: 6px 12px; font-size: 0.8rem; }
+
+    .movimientos-list { display: grid; gap: 10px; max-height: 300px; overflow-y: auto; }
+    .movimiento-item { display: flex; justify-content: space-between; padding: 12px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); }
+    .movimiento-item__date { font-size: 0.75rem; color: var(--muted); }
+    .movimiento-item__amount { font-weight: 600; color: var(--accent); }
+
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+    .alert-success { background: rgba(76,175,130,0.1); border: 1px solid rgba(76,175,130,0.25); color: var(--success); }
+    .alert-danger { background: rgba(224,85,85,0.1); border: 1px solid rgba(224,85,85,0.25); color: var(--danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detalle">
+
+    <div class="detalle__header">
+        <h1 class="detalle__title">{{ tarjeta.holder }}</h1>
+        <p class="detalle__subtitle">{{ tarjeta.nif }}</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card-visual">
+        <div class="card-number">{{ tarjeta.card_number }}</div>
+        <div class="card-info">
+            <div><strong>Titular:</strong> {{ tarjeta.holder }}</div>
+            <div><strong>Válida hasta:</strong> {{ tarjeta.expiration_month }}/{{ tarjeta.expiration_year }}</div>
+            <div><strong>CVV:</strong> {{ tarjeta.cvv }}</div>
+        </div>
+    </div>
+
+    <div class="sections">
+
+        <!-- Estadísticas -->
+        <div class="section">
+            <h2 class="section__title">📊 Estadísticas</h2>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-box__label">Límite</div>
+                    <div class="stat-box__value stat-box__value--accent">{{ tarjeta.limit }}€</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box__label">Gastado</div>
+                    <div class="stat-box__value">{{ "%.2f"|format(gasto) }}€</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box__label">Disponible</div>
+                    <div class="stat-box__value">{{ "%.2f"|format(tarjeta.limit - gasto) }}€</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modificar PIN -->
+        <div class="section">
+            <h2 class="section__title">🔒 Modificar PIN</h2>
+            <form method="POST" action="{{ url_for('tarjetas.modificar_pin', nif=tarjeta.nif) }}" class="form-inline">
+                <div class="form-group">
+                    <label class="form-label">Nuevo PIN</label>
+                    <input type="password" name="pin" class="form-input" placeholder="****" required pattern="[0-9]{4,}" minlength="4">
+                </div>
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+            </form>
+        </div>
+
+        <!-- Realizar pago -->
+        <div class="section">
+            <h2 class="section__title">💳 Realizar pago</h2>
+            <a href="{{ url_for('movimientos.realizar_pago', nif=tarjeta.nif) }}" class="btn btn-primary">Nuevo pago</a>
+        </div>
+
+        <!-- Movimientos recientes -->
+        <div class="section">
+            <h2 class="section__title">📝 Últimos movimientos</h2>
+            {% if movimientos %}
+                <div class="movimientos-list">
+                    {% for mov in movimientos %}
+                        <div class="movimiento-item">
+                            <div>
+                                <div><strong>{{ mov.concepto }}</strong></div>
+                                <div class="movimiento-item__date">{{ mov.fecha }}</div>
+                            </div>
+                            <div class="movimiento-item__amount">{{ "%.2f"|format(mov.cantidad) }}€</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('movimientos.listar_movimientos', nif=tarjeta.nif) }}" class="btn btn-ghost btn-small" style="margin-top: 12px;">Ver todos</a>
+            {% else %}
+                <p style="color: var(--muted); font-size: 0.9rem;">No hay movimientos aún</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
