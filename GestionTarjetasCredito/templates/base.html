@@ -1,18 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tarjetas Credito</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CardVault{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ── Variables globales ── */
+        :root {
+            --bg:        #0d0f14;
+            --surface:   #13161e;
+            --border:    #1e2330;
+            --text:      #e8eaf0;
+            --muted:     #6b7280;
+            --accent:    #c8a96e;
+            --accent-dim:#8a7048;
+            --danger:    #e05555;
+            --success:   #4caf82;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0;
+        }
+
+        .navbar__container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .navbar__brand {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            color: var(--text);
+            text-decoration: none;
+            font-style: italic;
+        }
+
+        .navbar__brand span {
+            color: var(--accent);
+        }
+
+        .navbar__nav {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .navbar__link {
+            padding: 8px 16px;
+            color: var(--muted);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .navbar__link:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .navbar__link--active {
+            color: var(--accent);
+            background: rgba(200,169,110,0.1);
+        }
+
+        /* ── Main content ── */
+        .main-content {
+            min-height: calc(100vh - 120px);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 24px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .navbar__nav {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .navbar__container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
 </head>
-<section class="content">
-    <header>
-        {% block header %} {% endblock %}
-    </header>
+<body>
 
-    {% for message in get_flashed_messages() %}
-    <div class="flash">{{message}}</div>
-    {% endfor %}
-    {% block content %} {% endblock %}
+    <!-- ── Navegación ── -->
+    <nav class="navbar">
+        <div class="navbar__container">
+            <a href="{{ url_for('index') }}" class="navbar__brand">
+                Card<span>Vault</span>
+            </a>
+            <ul class="navbar__nav">
+                <li><a href="{{ url_for('index') }}" class="navbar__link">Dashboard</a></li>
+                <li><a href="{{ url_for('tarjetas.listar_tarjetas') }}" class="navbar__link">Mis Tarjetas</a></li>
+                <li><a href="{{ url_for('tarjetas.crear_tarjeta') }}" class="navbar__link">Nueva Tarjeta</a></li>
+            </ul>
+        </div>
+    </nav>
 
-</section>
+    <!-- ── Contenido principal ── -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+        <p>CardVault &copy; 2025 — Sistema de gestión de tarjetas de crédito</p>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
 </html>
