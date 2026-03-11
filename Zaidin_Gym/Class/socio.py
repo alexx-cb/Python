@@ -1,12 +1,14 @@
 from datetime import date
 
+from Class.actividad import Actividad
 from Class.persona import Persona
 
 
 class Socio(Persona):
 
     def __init__(self, nombre: str, dni: str, direccion:str, provincia:str, codigo_postal:str, telefono:str,
-                 fecha_nacimiento:date, fecha_registro:date, fecha_ultimo_acceso:date, esta_activo:bool, lista_actividades:None | list) -> None:
+                 fecha_nacimiento:date, fecha_registro:date, fecha_ultimo_acceso:date, esta_activo:bool,
+                 lista_actividades:None | list[Actividad]) -> None:
 
         super().__init__(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento)
 
@@ -16,15 +18,20 @@ class Socio(Persona):
         if not self._validar_fecha(fecha_ultimo_acceso):
             raise TypeError("Formato de fecha incorrecto")
 
-        if not self._validar_activo(esta_activo):
+        if not self._validar_bool(esta_activo):
             raise TypeError("Formato de activo incorrecto")
+
+        if not self._validar_lista(lista_actividades):
+            raise TypeError("Formato de la lista de actividades incorrecta")
+
+        if not self._validar_horas_actividades(lista_actividades):
+            raise ValueError("La lista supera las horas necesarias")
 
         self.__fecha_registro = fecha_registro
         self.__fecha_ultimo_acceso = fecha_ultimo_acceso
         self.__esta_activo = esta_activo
 
-        # FALTA IMPLEMETAR
-        self.__cuota = 0
+        self.__cuota = self.get_duracion_actividades()
 
         if lista_actividades is None:
             self._lista_actividades = []
@@ -32,22 +39,41 @@ class Socio(Persona):
             self._lista_actividades = lista_actividades
 
 
-    #FALTA IMPLEMENTAR
-    # def get_duracion_activiades(self):
+    def get_duracion_actividades(self)->int:
+        return sum(actividad.duracion for actividad in self._lista_actividades)
 
-    # def add_actividad(self, Actividad):
+    def add_actividad(self, actividad:Actividad) -> bool:
+        if not isinstance(actividad, Actividad):
+            raise TypeError("Formato de actividad incorrecto")
 
-    # def del_actividad(self, Actividad):
+        if actividad.es_premium:
+            raise ValueError("La actividad es para usuarios premium")
+
+        if self.get_duracion_actividades() + actividad.duracion <6:
+            self._lista_actividades.append(actividad)
+            return True
+        else:
+            raise ValueError("No se puede agregar la actividad ya que supera el limite de horas permitido")
+
+
+    def del_actividad(self, actividad:Actividad)->bool|None:
+        if self._lista_actividades.remove(actividad):
+            return True
+        else:
+            raise ValueError("No se ha podido eliminar la actividad")
 
     @property
     def fecha_registro(self) -> date:
         return self.__fecha_registro
+
     @property
     def fecha_ultimo_acceso(self) -> date:
         return self.__fecha_ultimo_acceso
+
     @property
     def esta_activo(self) -> bool:
         return self.__esta_activo
+
     @property
     def cuota(self) -> int:
         return self.__cuota
@@ -68,20 +94,34 @@ class Socio(Persona):
 
     @esta_activo.setter
     def esta_activo(self, esta_activo: bool) -> None:
-        if not self._validar_activo(esta_activo):
+        if not self._validar_bool(esta_activo):
             raise TypeError("Formato de activo incorrecto")
 
         self.__esta_activo = esta_activo
 
     @staticmethod
-    def _validar_fecha(fecha):
+    def _validar_fecha(fecha)->bool|None:
         if not isinstance(fecha, date):
-            raise TypeError("Formato de fecha incorrecto")
+            return False
+        return None
 
     @staticmethod
-    def _validar_activo(activo):
+    def _validar_bool(activo)->bool|None:
         if not isinstance(activo, bool):
-            raise TypeError("Formato de activo incorrecto")
+            return False
+        return None
+
+    @staticmethod
+    def _validar_lista(lista:list) -> bool|None:
+        if not isinstance(lista, list):
+            return False
+        return None
+
+    #FALTA
+    @staticmethod
+    def _validar_horas_actividades(lista)->bool:
+        return sum(actividad.duracion for actividad in lista) <= 6
+
 
     def __copy__(self):
         nuevo = Socio(
