@@ -31,7 +31,7 @@ class Socio(Persona):
         self.__fecha_ultimo_acceso = fecha_ultimo_acceso
         self.__esta_activo = esta_activo
 
-        self.__cuota = self.get_duracion_actividades()
+        self.__cuota = self.get_duracion_actividades() * 6,5
 
         if lista_actividades is None:
             self._lista_actividades = []
