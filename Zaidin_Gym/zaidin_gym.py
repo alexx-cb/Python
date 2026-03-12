@@ -1,4 +1,8 @@
+from datetime import datetime, date
 from typing import Callable
+
+from Class.especialidad import Especialidad
+from Class.monitor import Monitor
 
 
 class ZaidinGym:
@@ -7,14 +11,13 @@ class ZaidinGym:
 
     def main(self):
         print("Bienvenido a ZaidinGym")
-        ZaidinGym.menu_principal()
 
         opcion =0
 
         opciones_principales = {
-            1: self._gestionar_usuarios(),
-            2: self._gestionar_actividades(),
-            3: self._consultas_estadisticas()
+            1: self._gestionar_usuarios,
+            2: self._gestionar_actividades,
+            3: self._consultas_estadisticas
         }
 
         while opcion != 4:
@@ -39,6 +42,12 @@ class ZaidinGym:
             else:
                 print("Introduce una opcion del menú")
 
+    def _gestionar_actividades(self) -> None:
+        raise NotImplementedError
+
+    def _consultas_estadisticas(self) -> None:
+        raise NotImplementedError
+
     def _gestionar_usuarios(self)->None:
         """
         Funcion que inicializa el menu de funciones para la gestion de usuarios
@@ -54,6 +63,85 @@ class ZaidinGym:
 
         self._ejecutar_menu(ZaidinGym.menu_gestion_usuarios, opciones_usuarios, 6)
 
+    @staticmethod
+    def _pedir_fecha(mensaje)->date:
+        while True:
+            fecha_str = input(mensaje).strip()
+
+            try:
+                return datetime.strptime(fecha_str, "%d/%m/%Y").date()
+            except ValueError:
+                print("Formato incorrecto. Usa dd/mm/aaaa")
+
+    def _alta_persona(self):
+
+        nombre = input("Ingrese el nombre: ").strip()
+        dni = input("Ingrese el DNI: ").strip()
+        direccion = input("Ingrese la direccion: ").strip()
+        provincia = input("Ingrese la provincia: ").strip()
+        codigo_postal = input("Ingrese el codigo postal: ").strip()
+        telefono = input("Ingrese el telefono: ").strip()
+
+        fecha_nacimiento = self._pedir_fecha("Ingrese la fecha de nacimiento (dd/mm/aaaa): ")
+
+        opcion = 0
+
+        while opcion not in [1,2,3]:
+            print("Que usuario quiere dar de alta.\n"
+                  "1. Monitor\n"
+                  "2. Socio\n"
+                  "3. Socio Premium\n")
+
+            try:
+                opcion = int(input("Ingrese el tipo de usuario: "))
+            except ValueError:
+                print("Introduce una opcion correcta")
+                continue
+
+            if opcion == 1:
+                print("Especialidades: FITNESS, PISCINA, CICLISMO, HIIT, CORE, BAILE, BODYCARE, CARDIO")
+                especialidades = self._pedir_especialidad()
+
+                sueldo = float(input("Ingrese el sueldo: "))
+                votos_positivos = int(input("Introduce los votos positivos: "))
+                votos_negativos = int(input("Introduce los votos negativos: "))
+
+                especialiades_enum = [Especialidad(e) for e in especialidades]
+
+                monitor = Monitor(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento, especialiades_enum,
+                        sueldo, votos_positivos, votos_negativos)
+
+                self.__lista_usuarios.append(monitor)
+                print("Monitor creado con exito")
+
+    @staticmethod
+    def _pedir_especialidad()->list[str]:
+        """
+        Pide al usuario una lista de especialidades separadas por comas, valida que existe en Especialidad y devuelve
+        un list de strings
+        :return: list[str] con las especialidades
+        """
+
+        while True:
+            entrada = input("Ingrese las especialidades separadas por comas: ")
+            lista = [esp.strip().lower() for esp in entrada.split(",") if esp.strip()]
+
+            invalidas = [esp for esp in lista if esp not in [e.value for e in Especialidad]]
+
+            if invalidas:
+                print("Especialidades invalidadas: ", ", ".join(invalidas))
+                print("Las especialidades validas son: ", ", ".join(e.value for e in Especialidad))
+            else:
+                return lista
+
+    def _baja_persona(self):
+        raise NotImplementedError
+
+    def _gestionar_monitores(self):
+        raise NotImplementedError
+
+    def _inactivar_socios(self):
+        raise NotImplementedError
 
     def _gestionar_socios(self)->None:
         """
@@ -69,6 +157,22 @@ class ZaidinGym:
         }
 
         self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
+
+
+    def _mostrar_lista_actividades(self)->None:
+        raise NotImplementedError
+
+    def _eliminar_actividad(self)->None:
+        raise NotImplementedError
+
+    def _añadir_actividad(self)->None:
+        raise NotImplementedError
+
+    def _valorar_actividad(self)->None:
+        raise NotImplementedError
+
+    def _convertir_premium(self)->None:
+        raise NotImplementedError
 
 
     @staticmethod

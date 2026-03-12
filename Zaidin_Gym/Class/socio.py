@@ -7,7 +7,7 @@ from Class.persona import Persona
 class Socio(Persona):
 
     def __init__(self, nombre: str, dni: str, direccion:str, provincia:str, codigo_postal:str, telefono:str,
-                 fecha_nacimiento:date, fecha_registro:date, fecha_ultimo_acceso:date, esta_activo:bool,
+                 fecha_nacimiento:date, fecha_registro:date|None, fecha_ultimo_acceso:date, esta_activo:bool,
                  lista_actividades:None | list[Actividad]) -> None:
 
         super().__init__(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento)
@@ -27,7 +27,11 @@ class Socio(Persona):
         if not self._validar_horas_actividades(lista_actividades):
             raise ValueError("La lista supera las horas necesarias")
 
-        self.__fecha_registro = fecha_registro
+        if fecha_registro is None:
+            self.__fecha_registro = date.today()
+        else:
+            self.__fecha_registro = fecha_registro
+
         self.__fecha_ultimo_acceso = fecha_ultimo_acceso
         self.__esta_activo = esta_activo
 

@@ -23,7 +23,7 @@ class Monitor(Persona, Valorable):
         if not self._comprobar_votos(votos_positivos):
             raise ValueError("Votos positivos deben ser un numero entero positivo")
 
-        if not self._comprobar_sueldo(votos_negativos):
+        if not self._comprobar_votos(votos_negativos):
             raise ValueError("Votos positivos deben ser un numero entero positivo")
 
 
@@ -65,6 +65,8 @@ class Monitor(Persona, Valorable):
     def sueldo(self,sueldo:float)->None:
         if not self._comprobar_sueldo(sueldo):
             raise ValueError("Sueldo debe ser como minimo el salario minimo (1184€)")
+
+        self.__sueldo = sueldo
 
     @staticmethod
     def _comprobar_especialidad(especialidades:list)->bool:

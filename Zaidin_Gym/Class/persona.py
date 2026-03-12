@@ -24,8 +24,7 @@ class Persona(ABC):
         if not self._validar_telefono(telefono):
             raise ValueError("Introduce un telefono correcto")
 
-        if not self._validar_fecha_nacimiento(fecha_nacimiento):
-            raise ValueError("Introduce una fecha de nacimiento correcta")
+        self._validar_fecha_nacimiento(fecha_nacimiento)
 
         self._nombre = nombre
         self._dni = dni
