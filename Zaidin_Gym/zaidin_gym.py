@@ -12,15 +12,21 @@ class ZaidinGym:
     __lista_usuarios = []
     __lista_actividades = []
 
+    """
+    -----------------------------------
+                MAIN
+    -----------------------------------
+    """
+
     def main(self):
         print("Bienvenido a ZaidinGym")
 
         opcion =0
 
         opciones_principales = {
-            1: self._gestionar_usuarios,
-            2: self._gestionar_actividades,
-            3: self._consultas_estadisticas
+            1: self.gestionar_usuarios,
+            2: self.gestionar_actividades,
+            3: self.consultas_estadisticas
         }
 
         while opcion != 4:
@@ -45,29 +51,69 @@ class ZaidinGym:
             else:
                 print("Introduce una opcion del menú")
 
-    def _gestionar_actividades(self) -> None:
-        raise NotImplementedError
+    """
+    -----------------------------------
+            GESTION DE MENUS
+    -----------------------------------
+    """
 
-    def _consultas_estadisticas(self) -> None:
-        raise NotImplementedError
+    def gestionar_actividades(self) -> None:
+        opciones_actividades = {
+            1: self.nueva_actividad,
+            2: self.eliminar_actividad,
+        }
 
-    def _gestionar_usuarios(self)->None:
+        self._ejecutar_menu(ZaidinGym.menu_actividades,opciones_actividades, 3)
+
+    def gestionar_usuarios(self)->None:
         """
         Funcion que inicializa el menu de funciones para la gestion de usuarios
         :return: None
         """
         opciones_usuarios = {
-            1: self._alta_persona,
-            2: self._baja_persona,
-            3: self._gestionar_socios,
-            4: self._gestionar_monitores,
-            5: self._inactivar_socios
+            1: self.alta_persona,
+            2: self.baja_persona,
+            3: self.gestionar_socios,
+            4: self.gestionar_monitores,
+            5: self.inactivar_socios
         }
 
         self._ejecutar_menu(ZaidinGym.menu_gestion_usuarios, opciones_usuarios, 6)
 
+    def gestionar_socios(self)->None:
+        """
+        Funcion que inicializa el menu de funciones para la gestion de socios
+        :return: None
+        """
+        opciones_socios = {
+            1: self.mostrar_lista_actividades,
+            2: self.nueva_actividad_lista,
+            3: self.eliminar_actividad_lista,
+            4: self.valorar_actividad,
+            5: self.convertir_premium
+        }
 
-    def _alta_persona(self):
+        self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
+
+    def consultas_estadisticas(self) -> None:
+
+        opciones_consultas = {
+            1: self.listar_personas_existentes,
+            2: self.listar_n_mejores,
+            3: self.listar_n_mejores_categoria,
+            4: self.listar_n_mejores_calorias,
+            5: self.listar_n_mejores_monitores
+        }
+
+        self._ejecutar_menu(ZaidinGym.menu_consultas_estadisticas, opciones_consultas, 6)
+
+    """
+    -----------------------------
+    GESTION DE USUARIOS
+    -----------------------------
+    """
+
+    def alta_persona(self)->None:
 
         nombre = input("Ingrese el nombre: ").strip()
         dni = input("Ingrese el DNI: ").strip()
@@ -93,7 +139,7 @@ class ZaidinGym:
                 continue
 
             if opcion == 1:
-                print("Especialidades: FITNESS, PISCINA, CICLISMO, HIIT, CORE, BAILE, BODYCARE, CARDIO")
+                print(f"Especialidades: ", ", ".join(esp.name for esp in Especialidad))
                 especialidades = self._pedir_especialidad()
 
                 sueldo = float(input("Ingrese el sueldo: "))
@@ -114,7 +160,7 @@ class ZaidinGym:
             if opcion == 2:
                 fecha_registro = self._pedir_fecha("Ingrese la fecha de registro (dd/mm/aaaa)")
                 fecha_ultimo_acceso = self._pedir_fecha("Ingrese la ultima fecha de acceso (dd/mm/aaaa)")
-                esta_activo = self._pedir_actividad_plataforma("Introduce si se encuentra activo en la plataforma (s/n)")
+                esta_activo = self._pedir_boolean("Introduce si se encuentra activo en la plataforma (s/n)")
                 print(f"Lista de actividades disponibles: ", ", ".join(a.nombre for a in self.__lista_actividades))
                 lista_actividades = self._comprobar_lista_actividades()
 
@@ -130,8 +176,7 @@ class ZaidinGym:
             if opcion == 3:
                 fecha_registro = self._pedir_fecha("Ingrese la fecha de registro (dd/mm/aaaa)")
                 fecha_ultimo_acceso = self._pedir_fecha("Ingrese la ultima fecha de acceso (dd/mm/aaaa)")
-                esta_activo = self._pedir_actividad_plataforma(
-                    "Introduce si se encuentra activo en la plataforma (s/n)")
+                esta_activo = self._pedir_boolean("Introduce si se encuentra activo en la plataforma (s/n)")
                 print(f"Lista de actividades disponibles: ", ", ".join(a.nombre for a in self.__lista_actividades))
                 lista_actividades = self._comprobar_lista_actividades()
                 es_premium = True
@@ -145,114 +190,95 @@ class ZaidinGym:
                 except ValueError:
                     print("Error al crear el socio")
 
-
-    @staticmethod
-    def _pedir_actividad_plataforma(mensaje)->bool:
-        while True:
-            activo  = input(mensaje).strip()
-
-            if activo in ["s", "n"]:
-                return True
-            else:
-                print("Introduce un valor correcto (s/n)")
-
-    @staticmethod
-    def _pedir_fecha(mensaje)->date:
-        while True:
-            fecha_str = input(mensaje).strip()
-
-            try:
-                return datetime.strptime(fecha_str, "%d/%m/%Y").date()
-            except ValueError:
-                print("Formato incorrecto. Usa dd/mm/aaaa")
-
-
-    def _comprobar_lista_actividades(self)->list[Actividad]:
-        while True:
-            entrada = input("Introduce el nombre de las actividades separadas por comas: ")
-            nombres = [act.strip().lower() for act in entrada.split(",") if act.strip()]
-            actividades_seleccionadas = []
-            invalidas = []
-
-            for nombre in nombres:
-                encontrada = None
-
-                for actividad in self.__lista_actividades:
-                    if actividad.nombre.lower() == nombre:
-                        encontrada = actividad
-                        break
-
-                if encontrada:
-                    actividades_seleccionadas.append(encontrada)
-                else:
-                    invalidas.append(nombre)
-
-            if invalidas:
-                print("Actividades invalidas:", ", ".join(invalidas))
-                print("Actividades validas:", ", ".join(a.nombre for a in self.__lista_actividades))
-            else:
-                return actividades_seleccionadas
-
-    @staticmethod
-    def _pedir_especialidad()->list[str]:
-        """
-        Pide al usuario una lista de especialidades separadas por comas, valida que existe en Especialidad y devuelve
-        un list de strings
-        :return: list[str] con las especialidades
-        """
-
-        while True:
-            entrada = input("Ingrese las especialidades separadas por comas: ")
-            lista = [esp.strip().lower() for esp in entrada.split(",") if esp.strip()]
-
-            invalidas = [esp for esp in lista if esp not in [e.value for e in Especialidad]]
-
-            if invalidas:
-                print("Especialidades invalidadas: ", ", ".join(invalidas))
-                print("Las especialidades validas son: ", ", ".join(e.value for e in Especialidad))
-            else:
-                return lista
-
-    def _baja_persona(self):
+    def baja_persona(self):
         raise NotImplementedError
 
-    def _gestionar_monitores(self):
+    def gestionar_monitores(self):
         raise NotImplementedError
 
-    def _inactivar_socios(self):
+    def inactivar_socios(self):
         raise NotImplementedError
 
-    def _gestionar_socios(self)->None:
-        """
-        Funcion que inicializa el menu de funciones para la gestion de socios
-        :return: None
-        """
-        opciones_socios = {
-            1: self._mostrar_lista_actividades,
-            2: self._añadir_actividad,
-            3: self._eliminar_actividad,
-            4: self._valorar_actividad,
-            5: self._convertir_premium
-        }
+    """
+    ---------------------------
+    GESTION DE SOCIOS
+    ---------------------------
+    """
 
-        self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
-
-
-    def _mostrar_lista_actividades(self)->None:
+    def mostrar_lista_actividades(self)->None:
         raise NotImplementedError
 
-    def _eliminar_actividad(self)->None:
+    def nueva_actividad_lista(self)->bool:
         raise NotImplementedError
 
-    def _añadir_actividad(self)->None:
+    def eliminar_actividad_lista(self)->None:
         raise NotImplementedError
 
-    def _valorar_actividad(self)->None:
+    def valorar_actividad(self) -> None:
         raise NotImplementedError
 
-    def _convertir_premium(self)->None:
+    def convertir_premium(self) -> None:
         raise NotImplementedError
 
+    """
+    ---------------------------
+    GESTION DE ACTIVIDADES (CREAR Y ELIMINAR)
+    ---------------------------
+    """
+
+    def nueva_actividad(self)->None:
+        nombre = input("Ingrese el nombre de la actividad: ")
+        duracion = int(input("Ingrese la duracion de la actividad en minutos: "))
+        calorias = int(input("Ingrese las calorias de la actividad: "))
+        print("Las categorias validas son: ", ", ".join(e.name for e in Especialidad))
+        categoria = self._pedir_categoria_actividad()
+        es_premium = self._pedir_boolean("Introduce si la actividad es premium (s/n)")
+
+        try:
+            actividad = Actividad(nombre, duracion, calorias, categoria, es_premium)
+
+            for act in self.__lista_actividades:
+                if act == actividad:
+                    print("Ya hay una actividad igual creada")
+                    return
+
+            self.__lista_usuarios.append(actividad)
+            print("Actividad creada con exito")
+
+        except ValueError:
+            print("Error al crear el actividad")
+
+
+    def eliminar_actividad(self)->None:
+        raise NotImplementedError
+
+
+    """
+    -----------------------------
+    CONSULTAS Y ESTADISTICAS
+    ------------------------------
+    """
+
+    def listar_personas_existentes(self):
+        raise NotImplementedError
+
+    def listar_n_mejores(self):
+        raise NotImplementedError
+
+    def listar_n_mejores_categoria(self):
+        raise NotImplementedError
+
+    def listar_n_mejores_calorias(self):
+        raise NotImplementedError
+
+    def listar_n_mejores_monitores(self):
+        raise NotImplementedError
+
+    """
+    ------------------------------
+        FUNCIONES AUXILIARES
+    ------------------------------
+    """
 
     @staticmethod
     def _ejecutar_menu(menu_func: Callable[[], None],opciones: dict,opcion_salida: int) -> None:
@@ -284,12 +310,94 @@ class ZaidinGym:
                 print("Introduce una opcion valida")
 
     @staticmethod
+    def _pedir_categoria_actividad()->Especialidad:
+        while True:
+            entrada = input("Introduce la categoria de la actividad: ").strip().lower()
+
+            try:
+                return Especialidad(entrada)
+            except ValueError:
+                print("Categoria no válida")
+                print("Las categorias validas son:", ", ".join(e.value for e in Especialidad))
+
+    @staticmethod
+    def _pedir_especialidad() -> list[str]:
+        """
+        Pide al usuario una lista de especialidades separadas por comas, valida que existe en Especialidad y devuelve
+        un list de strings
+        :return: list[str] con las especialidades
+        """
+
+        while True:
+            entrada = input("Ingrese las especialidades separadas por comas: ")
+            lista = [esp.strip().lower() for esp in entrada.split(",") if esp.strip()]
+
+            invalidas = [esp for esp in lista if esp not in [e.value for e in Especialidad]]
+
+            if invalidas:
+                print("Especialidades invalidadas: ", ", ".join(invalidas))
+                print("Las especialidades validas son: ", ", ".join(e.value for e in Especialidad))
+            else:
+                return lista
+
+    def _comprobar_lista_actividades(self)->list[Actividad]:
+        while True:
+            entrada = input("Introduce el nombre de las actividades separadas por comas: ")
+            nombres = [act.strip().lower() for act in entrada.split(",") if act.strip()]
+            actividades_seleccionadas = []
+            invalidas = []
+
+            for nombre in nombres:
+                encontrada = None
+
+                for actividad in self.__lista_actividades:
+                    if actividad.nombre.lower() == nombre:
+                        encontrada = actividad
+                        break
+
+                if encontrada:
+                    actividades_seleccionadas.append(encontrada)
+                else:
+                    invalidas.append(nombre)
+
+            if invalidas:
+                print("Actividades invalidas:", ", ".join(invalidas))
+                print("Actividades validas:", ", ".join(a.nombre for a in self.__lista_actividades))
+            else:
+                return actividades_seleccionadas
+
+    @staticmethod
+    def _pedir_fecha(mensaje) -> date:
+        while True:
+            fecha_str = input(mensaje).strip()
+
+            try:
+                return datetime.strptime(fecha_str, "%d/%m/%Y").date()
+            except ValueError:
+                print("Formato incorrecto. Usa dd/mm/aaaa")
+
+    @staticmethod
+    def _pedir_boolean(mensaje) -> bool:
+        while True:
+            activo = input(mensaje).strip()
+
+            if activo in ["s", "n"]:
+                return True
+            else:
+                print("Introduce un valor correcto (s/n)")
+
+    """
+    --------------------------
+            MENUS
+    --------------------------
+    """
+
+    @staticmethod
     def menu_principal():
         print("\n1. Gestionar usuarios (socios y monitores)")
         print("2. Gestionar actividades")
         print("3. Consultas y estadisticas")
         print("4. Salir")
-
 
     @staticmethod
     def menu_gestion_usuarios():
@@ -299,7 +407,6 @@ class ZaidinGym:
         print("4. Gestionar monitores")
         print("5. Inactivar socios automaticamente")
         print("6. Volver")
-
 
     @staticmethod
     def menu_gestion_socios():
@@ -311,13 +418,18 @@ class ZaidinGym:
         print("6. Volver")
 
     @staticmethod
-    def menu_gestion_actividades():
+    def menu_consultas_estadisticas():
         print("\n1. Listar personas existentes")
         print("2. Listar las n mejores actividades")
         print("3. Listar las n mejores actividades por categoria")
         print("4. Listar las n mejores actividades por cantidad de kcal")
         print("5. Listar los n mejores monitores")
         print("6. Volver")
+
+    @staticmethod
+    def menu_actividades():
+        print("1. Nueva actividad")
+        print("2. Eliminar actividad")
 
 if __name__ == "__main__":
     gym = ZaidinGym()
