@@ -27,8 +27,12 @@ class SocioPremium(Socio):
             self._lista_actividades.append(actividad)
             return True
         else:
-            super(SocioPremium, self).add_actividad(actividad)
+            super().add_actividad(actividad)
             return None
 
     def del_actividad(self, actividad:Actividad) ->bool|None:
-        super(SocioPremium, self).del_actividad(actividad)
+        return super().del_actividad(actividad)
+
+    @staticmethod
+    def _permite_actividades_premium() -> bool:
+        return True

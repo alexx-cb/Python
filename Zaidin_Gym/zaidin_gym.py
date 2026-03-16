@@ -1,8 +1,11 @@
 from datetime import datetime, date
 from typing import Callable
 
+from Class.actividad import Actividad
 from Class.especialidad import Especialidad
 from Class.monitor import Monitor
+from Class.socio import Socio
+from Class.socio_premium import SocioPremium
 
 
 class ZaidinGym:
@@ -63,15 +66,6 @@ class ZaidinGym:
 
         self._ejecutar_menu(ZaidinGym.menu_gestion_usuarios, opciones_usuarios, 6)
 
-    @staticmethod
-    def _pedir_fecha(mensaje)->date:
-        while True:
-            fecha_str = input(mensaje).strip()
-
-            try:
-                return datetime.strptime(fecha_str, "%d/%m/%Y").date()
-            except ValueError:
-                print("Formato incorrecto. Usa dd/mm/aaaa")
 
     def _alta_persona(self):
 
@@ -87,7 +81,7 @@ class ZaidinGym:
         opcion = 0
 
         while opcion not in [1,2,3]:
-            print("Que usuario quiere dar de alta.\n"
+            print("Que tipo de usuario quiere dar de alta.\n"
                   "1. Monitor\n"
                   "2. Socio\n"
                   "3. Socio Premium\n")
@@ -108,11 +102,96 @@ class ZaidinGym:
 
                 especialiades_enum = [Especialidad(e) for e in especialidades]
 
-                monitor = Monitor(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento, especialiades_enum,
-                        sueldo, votos_positivos, votos_negativos)
 
-                self.__lista_usuarios.append(monitor)
-                print("Monitor creado con exito")
+                try:
+                    monitor = Monitor(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento, especialiades_enum,
+                            sueldo, votos_positivos, votos_negativos)
+                    self.__lista_usuarios.append(monitor)
+                    print("Monitor creado con exito")
+                except ValueError:
+                    print("Error al crear el monitor")
+
+            if opcion == 2:
+                fecha_registro = self._pedir_fecha("Ingrese la fecha de registro (dd/mm/aaaa)")
+                fecha_ultimo_acceso = self._pedir_fecha("Ingrese la ultima fecha de acceso (dd/mm/aaaa)")
+                esta_activo = self._pedir_actividad_plataforma("Introduce si se encuentra activo en la plataforma (s/n)")
+                print(f"Lista de actividades disponibles: ", ", ".join(a.nombre for a in self.__lista_actividades))
+                lista_actividades = self._comprobar_lista_actividades()
+
+                try:
+                    socio = Socio(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento, fecha_registro,
+                                  fecha_ultimo_acceso, esta_activo, lista_actividades)
+
+                    self.__lista_usuarios.append(socio)
+                    print("Socio creado con exito")
+                except ValueError:
+                    print("Error al crear el socio")
+
+            if opcion == 3:
+                fecha_registro = self._pedir_fecha("Ingrese la fecha de registro (dd/mm/aaaa)")
+                fecha_ultimo_acceso = self._pedir_fecha("Ingrese la ultima fecha de acceso (dd/mm/aaaa)")
+                esta_activo = self._pedir_actividad_plataforma(
+                    "Introduce si se encuentra activo en la plataforma (s/n)")
+                print(f"Lista de actividades disponibles: ", ", ".join(a.nombre for a in self.__lista_actividades))
+                lista_actividades = self._comprobar_lista_actividades()
+                es_premium = True
+
+                try:
+                    socio = SocioPremium(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento,
+                                  fecha_registro,fecha_ultimo_acceso, esta_activo, lista_actividades, es_premium)
+
+                    self.__lista_usuarios.append(socio)
+                    print("Socio creado con exito")
+                except ValueError:
+                    print("Error al crear el socio")
+
+
+    @staticmethod
+    def _pedir_actividad_plataforma(mensaje)->bool:
+        while True:
+            activo  = input(mensaje).strip()
+
+            if activo in ["s", "n"]:
+                return True
+            else:
+                print("Introduce un valor correcto (s/n)")
+
+    @staticmethod
+    def _pedir_fecha(mensaje)->date:
+        while True:
+            fecha_str = input(mensaje).strip()
+
+            try:
+                return datetime.strptime(fecha_str, "%d/%m/%Y").date()
+            except ValueError:
+                print("Formato incorrecto. Usa dd/mm/aaaa")
+
+
+    def _comprobar_lista_actividades(self)->list[Actividad]:
+        while True:
+            entrada = input("Introduce el nombre de las actividades separadas por comas: ")
+            nombres = [act.strip().lower() for act in entrada.split(",") if act.strip()]
+            actividades_seleccionadas = []
+            invalidas = []
+
+            for nombre in nombres:
+                encontrada = None
+
+                for actividad in self.__lista_actividades:
+                    if actividad.nombre.lower() == nombre:
+                        encontrada = actividad
+                        break
+
+                if encontrada:
+                    actividades_seleccionadas.append(encontrada)
+                else:
+                    invalidas.append(nombre)
+
+            if invalidas:
+                print("Actividades invalidas:", ", ".join(invalidas))
+                print("Actividades validas:", ", ".join(a.nombre for a in self.__lista_actividades))
+            else:
+                return actividades_seleccionadas
 
     @staticmethod
     def _pedir_especialidad()->list[str]:

@@ -27,6 +27,11 @@ class Socio(Persona):
         if not self._validar_horas_actividades(lista_actividades):
             raise ValueError("La lista supera las horas necesarias")
 
+        if lista_actividades is not None:
+            if not self._permite_actividades_premium():
+                if not self._validar_actividades_premium(lista_actividades):
+                    raise ValueError("Se han añadido actividades premium a la lista para un usuario normal")
+
         if fecha_registro is None:
             self.__fecha_registro = date.today()
         else:
@@ -35,13 +40,12 @@ class Socio(Persona):
         self.__fecha_ultimo_acceso = fecha_ultimo_acceso
         self.__esta_activo = esta_activo
 
-        self.__cuota = self.get_duracion_actividades() * 6,5
-
         if lista_actividades is None:
             self._lista_actividades = []
         else:
             self._lista_actividades = lista_actividades
 
+        self.__cuota = self.get_duracion_actividades() * 6.5
 
     def get_duracion_actividades(self)->int:
         return sum(actividad.duracion for actividad in self._lista_actividades)
@@ -51,20 +55,21 @@ class Socio(Persona):
             raise TypeError("Formato de actividad incorrecto")
 
         if actividad.es_premium:
-            raise ValueError("La actividad es para usuarios premium")
+            raise ValueError(f"La actividad {actividad.nombre} es para usuarios premium")
 
-        if self.get_duracion_actividades() + actividad.duracion <6:
+        if self.get_duracion_actividades() + actividad.duracion <=6:
             self._lista_actividades.append(actividad)
             return True
         else:
-            raise ValueError("No se puede agregar la actividad ya que supera el limite de horas permitido")
+            raise ValueError(f"No se puede agregar la actividad {actividad.nombre} ya que supera el limite de horas permitido")
 
 
     def del_actividad(self, actividad:Actividad)->bool|None:
-        if self._lista_actividades.remove(actividad):
+        if actividad in self._lista_actividades:
+            self._lista_actividades.remove(actividad)
             return True
         else:
-            raise ValueError("No se ha podido eliminar la actividad")
+            raise ValueError(f"No se ha podido eliminar la actividad {actividad.nombre}")
 
     @property
     def fecha_registro(self) -> date:
@@ -79,7 +84,7 @@ class Socio(Persona):
         return self.__esta_activo
 
     @property
-    def cuota(self) -> int:
+    def cuota(self) -> float:
         return self.__cuota
 
     @fecha_registro.setter
@@ -104,27 +109,31 @@ class Socio(Persona):
         self.__esta_activo = esta_activo
 
     @staticmethod
-    def _validar_fecha(fecha)->bool|None:
-        if not isinstance(fecha, date):
-            return False
-        return None
+    def _validar_fecha(fecha)->bool:
+        return isinstance(fecha, date)
 
     @staticmethod
-    def _validar_bool(activo)->bool|None:
-        if not isinstance(activo, bool):
-            return False
-        return None
+    def _validar_bool(activo)->bool:
+        return isinstance(activo, bool)
 
     @staticmethod
-    def _validar_lista(lista:list) -> bool|None:
-        if not isinstance(lista, list):
-            return False
+    def _validar_lista(lista:list[Actividad]) -> bool|None:
+        return isinstance(lista, list)
+
+    @staticmethod
+    def _validar_actividades_premium(lista:list[Actividad])->bool|None:
+        for actividad in lista:
+            if actividad.es_premium:
+                return False
         return None
 
-    #FALTA
     @staticmethod
     def _validar_horas_actividades(lista)->bool:
         return sum(actividad.duracion for actividad in lista) <= 6
+
+    @staticmethod
+    def _permite_actividades_premium() -> bool:
+        return False
 
 
     def __copy__(self):
@@ -147,7 +156,7 @@ class Socio(Persona):
         return nuevo
 
     def __str__(self):
-        super().__str__() + (f"\nFecha de Registro: {self.__fecha_registro}"
+        return super().__str__() + (f"\nFecha de Registro: {self.__fecha_registro}"
                              f"\nFecha ultimo acceso: {self.__fecha_ultimo_acceso}"
                              f"\nEsta Activo: {self.__esta_activo}"
                              f"\nCuota: {self.__cuota}"
