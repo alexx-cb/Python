@@ -36,3 +36,6 @@ class SocioPremium(Socio):
     @staticmethod
     def _permite_actividades_premium() -> bool:
         return True
+
+    def __str__(self):
+        return super().__str__() + f"\nPremium: {self.__es_premium}"

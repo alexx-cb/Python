@@ -8,7 +8,7 @@ from Interface.valorable import Valorable
 class Monitor(Persona, Valorable):
 
     def __init__(self,nombre: str, dni: str, direccion:str , provincia:str, codigo_postal:str, telefono:str,
-                 fecha_nacimiento:date, especialidad:list, sueldo:float, votos_positivos:int, votos_negativos:int)->None:
+                 fecha_nacimiento:date, especialidad:list[Especialidad], sueldo:float, votos_positivos:int, votos_negativos:int)->None:
 
         super().__init__(nombre, dni, direccion, provincia, codigo_postal, telefono, fecha_nacimiento)
 
@@ -36,10 +36,10 @@ class Monitor(Persona, Valorable):
 
     def me_gusta(self, like:bool)->bool:
         if like:
-            self.__votos_positivos = self.__votos_positivos + 1
+            self.__votos_positivos += 1
             return True
         else:
-            self.__votos_negativos = self.__votos_negativos + 1
+            self.__votos_negativos += 1
             return True
 
     def calcular_valoracion(self) ->int:
@@ -54,7 +54,7 @@ class Monitor(Persona, Valorable):
         return self.__sueldo
 
     @especialidad.setter
-    def especialidad(self,especialidad:list)->None:
+    def especialidad(self,especialidad:list[Especialidad])->None:
 
         if not self._comprobar_especialidad(especialidad):
             raise ValueError("Un monitor no puede tener mas de 3 especialidades")
@@ -69,12 +69,12 @@ class Monitor(Persona, Valorable):
         self.__sueldo = sueldo
 
     @staticmethod
-    def _comprobar_especialidad(especialidades:list)->bool:
-        if len(especialidades) >3:
+    def _comprobar_especialidad(especialidades:list[Especialidad])->bool:
+        if not isinstance(especialidades, list):
             return False
 
-        for e in especialidades:
-            if not isinstance(e, Especialidad):
+        for elemento in especialidades:
+            if not isinstance(elemento, Especialidad):
                 return False
         return True
 
@@ -113,7 +113,7 @@ class Monitor(Persona, Valorable):
 
 
     def __str__(self):
-        super().__str__() + (f"Especialidades: {self.__especialidad}\n"
+        return super().__str__() + (f"Especialidades: {self.__especialidad}\n"
                              f"Sueldo: {self.__sueldo}\n"
                              f"Votos positivos: {self.__votos_positivos}\n"
                              f"Votos negativos: {self.__votos_negativos}\n")
