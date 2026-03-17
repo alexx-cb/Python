@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Callable
 
 from Class.actividad import Actividad
@@ -18,7 +18,11 @@ class ZaidinGym:
     -----------------------------------
     """
 
-    def main(self):
+    def main(self)->None:
+        """
+        Funcion principal del programa
+        :return: None
+        """
         print("Bienvenido a ZaidinGym")
 
         opcion =0
@@ -89,15 +93,25 @@ class ZaidinGym:
         Funcion que inicializa el menu de funciones para la gestion de socios
         :return: None
         """
-        opciones_socios = {
-            1: self.mostrar_lista_actividades,
-            2: self.nueva_actividad_lista,
-            3: self.eliminar_actividad_lista,
-            4: self.valorar_actividad,
-            5: self.convertir_premium
-        }
 
-        self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
+        dni = input("Introduce el dni del socio: ").strip()
+        persona = self._buscar_persona_dni(dni)
+
+        if persona:
+            persona.fecha_ultimo_acceso = date.today()
+
+            opciones_socios = {
+                1: lambda :self.mostrar_lista_actividades(persona),
+                2: lambda :self.nueva_actividad_lista(persona),
+                3: lambda :self.eliminar_actividad_lista,
+                4: lambda :self.valorar_actividad,
+                5: lambda :self.convertir_premium
+            }
+
+            self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
+
+        else:
+            print(f"no se ha encontrado el usuario con dni {dni}")
 
     def consultas_estadisticas(self) -> None:
         """
@@ -125,7 +139,7 @@ class ZaidinGym:
         """
         Funcion que da de alta una persona.\n
 
-        Primeramente se piden los datos del usuario compartidos entre todos los tipos, y posteriormente se piden los datos
+        Primeramente, se piden los datos del usuario compartidos entre todos los tipos, y posteriormente se piden los datos
         de cada tipo de usuario según el tipo de usuario que se quiera crear.\n
 
         Si se crea el usuario se mete automaticamente en la lista de usuarios.
@@ -207,30 +221,35 @@ class ZaidinGym:
                 except ValueError:
                     print("Error al crear el socio")
 
-    def baja_persona(self, dni:str)->None:
+    def baja_persona(self)->None:
         """
         Funcion que elimina un usuario de la plataforma.\n
 
         Si se encuentra el usuario pregunta si se quiere eliminar
-        :param dni: str con el dni del usuario
         :return: None
         """
-        dni_str = dni.lower().strip()
+        dni = input("Introduce el dni de la persona que quiere eliminar: ")
+        persona = self._buscar_persona_dni(dni)
 
-        for persona in self.__lista_usuarios:
-            if persona.dni.strip().lower() == dni_str:
-                print("¿Esta seguro de eliminar este usuario?")
-                print(persona)
-                respuesta = self._pedir_boolean("¿Eliminar este usuario? (s/n): ")
+        if persona:
+            print("¿Esta seguro de eliminar este usuario?")
+            print(persona)
+            respuesta = self._pedir_boolean("¿Eliminar este usuario? (s/n): ")
 
-                if respuesta:
-                    self.__lista_usuarios.remove(persona)
-                else:
-                    print("Cancelado.")
+            if respuesta:
+                self.__lista_usuarios.remove(persona)
             else:
-                print(f"No se ha encontrado el usuario con el dni {dni}")
+                print("Cancelado.")
+        else:
+            print(f"No se ha encontrado el usuario con el dni {dni}")
 
     def gestionar_monitores(self, nombre:str)->None:
+        """
+        Funcion que ejecuta una serie de funciones auxiliares para actualizar el sueldo, actualizar las especialidaddes
+        y valorar el monitor
+        :param nombre: String con el nombre del monitor
+        :return: None
+        """
 
         nombre_str = nombre.lower().strip()
         encontrado = False
@@ -253,7 +272,18 @@ class ZaidinGym:
             print(f"No se ha encontrado el monitor {nombre}")
 
     def inactivar_socios(self):
-        raise NotImplementedError
+        """
+        Función que inactiva todos los usuarios que no se han
+        :return: None
+        """
+
+        hoy = date.today()
+        un_mes = hoy - timedelta(days=30)
+        for usuario in self.__lista_usuarios:
+            if isinstance(usuario, (Socio, SocioPremium)):
+                if usuario.fecha_ultimo_acceso < un_mes and usuario.esta_activo:
+                    usuario.esta_activo = False
+                    print(f"{usuario.nombre} ha sido inactivado")
 
     """
     ---------------------------
@@ -261,11 +291,46 @@ class ZaidinGym:
     ---------------------------
     """
 
-    def mostrar_lista_actividades(self)->None:
-        raise NotImplementedError
+    @staticmethod
+    def mostrar_lista_actividades(socio:Socio | SocioPremium)->None:
+        """
+        Funcion que muestra la lista de actividades de un socio
+        :param socio: Socio | SocioPremium objeto con la lista de actividades
+        :return: None
+        """
+        if isinstance(socio, Socio):
 
-    def nueva_actividad_lista(self)->bool:
-        raise NotImplementedError
+            if len(socio.lista_actividades) ==0:
+                print("La lista de actividades esta vacía")
+            else:
+                print(f"Duracion de la lista de actividades: {socio.get_duracion_actividades()/60} horas")
+                for actividad in socio.lista_actividades:
+                    print(actividad)
+
+        else:
+            print("Los monitores no tienen lista de actividades")
+
+    def nueva_actividad_lista(self, socio:Socio | SocioPremium)->None:
+        """
+        Funcion que añade una actividad nueva a la lista del socio pasado por parametro siempre y cuando sea posible
+        :param socio: Socio | SocioPremium con la lista de actividades
+        :return: None
+        """
+        print("Lista de actividades")
+        for actividad in self.__lista_actividades:
+            print(actividad)
+
+        nombre = input("Introduce el nombre de la actividad que quieres añadir: ")
+
+        for actividad in self.__lista_actividades:
+            if actividad.nombre == nombre:
+                try:
+                    socio.add_actividad(actividad)
+                    print(f"{actividad.nombre} agregada correctamente")
+                except ValueError as e:
+                    print(f"Error al añadir la actividad a la lista de actividades: {e}")
+            else:
+                print(f"El nombre {nombre} no esta en la lista de actividades")
 
     def eliminar_actividad_lista(self)->None:
         raise NotImplementedError
@@ -313,10 +378,10 @@ class ZaidinGym:
 
     def eliminar_actividad(self, nombre:str)->None:
         """
-        Funcion que elimina un actividad del gimnasio.\n
+        Función que elimina una actividad del gimnasio.\n
 
-        Si la actividad esta seleccionada por algun socio no se elimina y mumestra todos los socios que tienen esa actividad.
-        :param nombre: str con el nombre de la actividad
+        Si la actividad está seleccionada por algún socio no se elimina y muestra todos los socios que tienen esa actividad.
+        :param nombre: Str con el nombre de la actividad
         :return: None
         """
         nombre = nombre.lower()
@@ -367,7 +432,7 @@ class ZaidinGym:
     def _ejecutar_menu(menu_func: Callable[[], None],opciones: dict,opcion_salida: int) -> None:
         """
         Funcion que valida la entrada de datos en los menús para evitar la duplicidad y ejecuta la accion correspondiente
-        :param menu_func:Callable [] con menu que contiene las opciones validas, devuelve None
+        :param menu_func:Callable [] con menu que contiene las opciones válidas, devuelve None
         :param opciones: Dict con las funciones para cada opcion
         :param opcion_salida: int con el valor para salir de la funcion
         :return: None
@@ -395,7 +460,7 @@ class ZaidinGym:
     @staticmethod
     def _pedir_categoria_actividad()->Especialidad:
         """
-        Funcion auxiliar que devuelve la categoria de la actividad correcta segun el Enum de Especialidad
+        Funcion auxiliar que devuelve la categoria de la actividad correcta según el Enum de Especialidad
         :return: Especialidad con el name y value de la categoria de la actividad
         """
         while True:
@@ -410,7 +475,7 @@ class ZaidinGym:
     @staticmethod
     def _pedir_especialidad() -> list[str]:
         """
-        Funcion auxiliar que pide al usuario una lista de especialidades separadas por comas, valida que existe en
+        Funcion auxiliar que pide al usuario una lista de especialidades separadas por comas, valída que existe en
         Especialidad y devuelve un list de strings
         :return: list[str] con las especialidades
         """
@@ -554,6 +619,19 @@ class ZaidinGym:
 
         monitor.me_gusta(like)
         print("¡Gracias por valorar!")
+
+    def _buscar_persona_dni(self, dni:str)->Socio | SocioPremium | Monitor |None:
+        """
+        Funcion auxiliar que devuelve un Socio | SocioPremium | Monitor si el dni pasado por parametro está asociado a un usuario
+        :param dni: String con el dni del usuario
+        :return: Socio | SocioPremium | Monitor | None
+        """
+
+        for usuario in self.__lista_usuarios:
+            if isinstance(usuario, (Socio, SocioPremium, Monitor)):
+                if usuario.dni == dni:
+                    return usuario
+        return None
 
     """
     --------------------------

@@ -87,6 +87,10 @@ class Socio(Persona):
     def cuota(self) -> float:
         return self.__cuota
 
+    @property
+    def lista_actividades(self) -> list[Actividad]:
+        return self._lista_actividades
+
     @fecha_registro.setter
     def fecha_registro(self, fecha_registro: date) -> None:
         if not self._validar_fecha(fecha_registro):
@@ -127,8 +131,7 @@ class Socio(Persona):
                 return False
         return None
 
-    @staticmethod
-    def _validar_horas_actividades(lista)->bool:
+    def _validar_horas_actividades(self, lista) -> bool:
         return sum(actividad.duracion for actividad in lista) <= 6
 
     @staticmethod
