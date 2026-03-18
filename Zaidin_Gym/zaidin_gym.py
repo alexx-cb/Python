@@ -13,6 +13,87 @@ class ZaidinGym:
     __lista_actividades = []
 
     """
+    ----------------------------
+    CARGA DE DATOS
+    ----------------------------
+    """
+
+    def __init__(self):
+        """
+        Constructor que hace una carga inicial de datos
+        """
+        a1 = Actividad("Yoga Matutino", 60, 250, Especialidad.CORE, False)
+        a2 = Actividad("Spinning Extremo", 45, 500, Especialidad.CICLISMO, False)
+        a3 = Actividad("Baile Latino", 60, 400, Especialidad.BAILE, False)
+        a4 = Actividad("HIIT Avanzado", 30, 600, Especialidad.HIIT, True)
+        a5 = Actividad("Natacion Premium", 90, 350, Especialidad.PISCINA, True)
+        a6 = Actividad("Cardio Total", 45, 480, Especialidad.CARDIO, False)
+        a7 = Actividad("Body Stretching", 60, 200, Especialidad.BODYCARE, False)
+        a8 = Actividad("Fitness Funcional", 50, 550, Especialidad.FITNESS, True)
+
+        a1.votar(8)
+        a1.votar(9)
+        a1.votar(7)
+        a2.votar(6)
+        a2.votar(7)
+        a2.votar(8)
+        a3.votar(9)
+        a3.votar(10)
+        a3.votar(9)
+        a4.votar(5)
+        a4.votar(6)
+        a5.votar(10)
+        a5.votar(9)
+        a5.votar(10)
+        a6.votar(7)
+        a6.votar(8)
+        a7.votar(4)
+        a7.votar(5)
+        a8.votar(8)
+        a8.votar(9)
+        a8.votar(10)
+
+        ZaidinGym.__lista_actividades = [a1, a2, a3, a4, a5, a6, a7, a8]
+
+        m1 = Monitor(
+            "Carlos Garcia Lopez", "12345678Z", "Calle Mayor 1", "Granada", "18001", "600111222",
+            date(1985, 3, 15), [Especialidad.FITNESS, Especialidad.HIIT], 1500.0, 20, 3
+        )
+        m2 = Monitor(
+            "Ana Martinez Ruiz", "87654321X", "Avenida Constitucion 5", "Granada", "18002", "600333444",
+            date(1990, 7, 22), [Especialidad.BAILE, Especialidad.CARDIO, Especialidad.CORE], 1800.0, 35, 2
+        )
+        m3 = Monitor(
+            "Pedro Sanchez Mora", "11223344B", "Plaza Nueva 10", "Granada", "18003", "600555666",
+            date(1988, 11, 5), [Especialidad.PISCINA, Especialidad.CICLISMO], 1400.0, 10, 8
+        )
+
+        s1 = Socio(
+            "Luis Fernandez Gil", "22334455Y", "Calle Recogidas 3", "Granada", "18004", "611100200",
+            date(1995, 4, 10), date(2023, 1, 15), date(2026, 3, 1), True, [a1, a2]
+        )
+        s2 = Socio(
+            "Maria Lopez Castro", "33445566R", "Calle Arabial 7", "Granada", "18005", "622200300",
+            date(2000, 8, 20), date(2024, 6, 1), date(2025, 12, 1), True, [a3]
+        )
+        s3 = Socio(
+            "Jorge Ramirez Vega", "44556677L", "Camino Ronda 12", "Granada", "18006", "633300400",
+            date(1998, 2, 14), date(2024, 3, 10), date(2026, 2, 20), True, []
+        )
+
+        sp1 = SocioPremium(
+            "Elena Torres Blanco", "55667788Z", "Gran Via 20", "Granada", "18007", "644400500",
+            date(1993, 6, 30), date(2022, 9, 1), date(2026, 3, 15), True, [a4, a5, a8], True
+        )
+        sp2 = SocioPremium(
+            "Roberto Navarro Diaz", "66778899D", "Calle Elvira 33", "Granada", "18008", "655500600",
+            date(1987, 12, 1), date(2023, 5, 20), date(2026, 3, 10), True, [a4, a6, a7, a8], True
+        )
+
+        ZaidinGym.__lista_usuarios = [m1, m2, m3, s1, s2, s3, sp1, sp2]
+
+
+    """
     -----------------------------------
                 MAIN
     -----------------------------------
@@ -88,30 +169,40 @@ class ZaidinGym:
 
         self._ejecutar_menu(ZaidinGym.menu_gestion_usuarios, opciones_usuarios, 6)
 
-    def gestionar_socios(self)->None:
+    def gestionar_socios(self) -> None:
         """
-        Funcion que inicializa el menu de funciones para la gestion de socios
+        Funcion que inicializa el menu de funciones para la gestion de socios y actualiza la fecha de último acceso del socio
         :return: None
         """
 
-        dni = input("Introduce el dni del socio: ").strip()
-        persona = self._buscar_persona_dni(dni)
+        entrada = input("Introduce el DNI o nombre del socio: ").strip()
+        persona = self._buscar_persona_dni(entrada)
+        if not persona:
+            persona = self._buscar_persona_nombre(entrada)
 
         if persona:
             persona.fecha_ultimo_acceso = date.today()
 
-            opciones_socios = {
-                1: lambda :self.mostrar_lista_actividades(persona),
-                2: lambda :self.nueva_actividad_lista(persona),
-                3: lambda :self.eliminar_actividad_lista,
-                4: lambda :self.valorar_actividad,
-                5: lambda :self.convertir_premium
-            }
-
-            self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
+            if isinstance(persona, SocioPremium):
+                opciones_socios = {
+                    1: lambda: self.mostrar_lista_actividades(persona),
+                    2: lambda: self.nueva_actividad_lista(persona),
+                    3: lambda: self.eliminar_actividad_lista(persona),
+                    4: lambda: self.valorar_actividad(persona),
+                }
+                self._ejecutar_menu(ZaidinGym.menu_gestion_socios_premium, opciones_socios, 5)
+            else:
+                opciones_socios = {
+                    1: lambda: self.mostrar_lista_actividades(persona),
+                    2: lambda: self.nueva_actividad_lista(persona),
+                    3: lambda: self.eliminar_actividad_lista(persona),
+                    4: lambda: self.valorar_actividad(persona),
+                    5: lambda: self.convertir_premium(persona),
+                }
+                self._ejecutar_menu(ZaidinGym.menu_gestion_socios, opciones_socios, 6)
 
         else:
-            print(f"no se ha encontrado el usuario con dni {dni}")
+            print(f"No se ha encontrado el usuario {entrada}")
 
     def consultas_estadisticas(self) -> None:
         """
@@ -243,19 +334,18 @@ class ZaidinGym:
         else:
             print(f"No se ha encontrado el usuario con el dni {dni}")
 
-    def gestionar_monitores(self, nombre:str)->None:
+    def gestionar_monitores(self)->None:
         """
         Funcion que ejecuta una serie de funciones auxiliares para actualizar el sueldo, actualizar las especialidaddes
         y valorar el monitor
-        :param nombre: String con el nombre del monitor
         :return: None
         """
 
-        nombre_str = nombre.lower().strip()
+        nombre = input("Introduce el nombre del monitor: ").strip()
         encontrado = False
 
         for monitor in self.__lista_usuarios:
-            if monitor.nombre.strip().lower() == nombre_str:
+            if monitor.nombre.strip().lower() == nombre:
                 encontrado = True
                 print(monitor)
 
@@ -322,24 +412,82 @@ class ZaidinGym:
 
         nombre = input("Introduce el nombre de la actividad que quieres añadir: ")
 
+        encontrada = None
         for actividad in self.__lista_actividades:
             if actividad.nombre == nombre:
+                encontrada = actividad
+                break
+
+        if encontrada:
+            try:
+                socio.add_actividad(encontrada)
+                print(f"{encontrada.nombre} agregada correctamente")
+            except ValueError as e:
+                print(f"Error: {e}")
+        else:
+            print(f"No se encontró la actividad '{nombre}'")
+
+    @staticmethod
+    def eliminar_actividad_lista(socio: Socio | SocioPremium)->None:
+        print("Lista de actividades del socio")
+        for actividad in socio.lista_actividades:
+            print(actividad)
+
+        nombre = input("Escribe el nombre de la actividad que quieres eliminar: ")
+        encontrada = None
+
+        for actividad in socio.lista_actividades:
+            if actividad.nombre == nombre:
+                encontrada = actividad
+                break
+
+        if encontrada:
+            try:
+                socio.del_actividad(encontrada)
+                print(f"Actividad {encontrada.nombre} eliminada correctamente")
+            except ValueError as e:
+                print(f"Error al eliminar la actividad: {e}")
+        else:
+            print(f"no se ha encontrado la actividad {nombre}")
+
+    @staticmethod
+    def valorar_actividad(socio: Socio | SocioPremium) -> None:
+        print("Qué actividad quiere valorar?")
+
+        for actividad in socio.lista_actividades:
+            print(actividad)
+
+        nombre = input("Introduce el nombre de la actividad: ")
+        for actividad in socio.lista_actividades:
+            if actividad.nombre == nombre:
                 try:
-                    socio.add_actividad(actividad)
-                    print(f"{actividad.nombre} agregada correctamente")
+                    nota = int(input("Introduce que nota quieres darle a la actividad: "))
+                    actividad.votar(nota)
+                    print("Gracias por valorar")
                 except ValueError as e:
-                    print(f"Error al añadir la actividad a la lista de actividades: {e}")
-            else:
-                print(f"El nombre {nombre} no esta en la lista de actividades")
+                    print(f"Error al valorar la actividad: {e}")
 
-    def eliminar_actividad_lista(self)->None:
-        raise NotImplementedError
+    def convertir_premium(self, socio: Socio) -> None:
+        if isinstance(socio, Socio) and not isinstance(socio, SocioPremium):
+            for i, usuario in enumerate(self.__lista_usuarios):
+                if usuario == socio:
+                    nuevo = SocioPremium(
+                        socio.nombre,
+                        socio.dni,
+                        socio.direccion,
+                        socio.provincia,
+                        socio.codigo_postal,
+                        socio.telefono,
+                        socio.fecha_nacimiento,
+                        socio.fecha_registro,
+                        socio.fecha_ultimo_acceso,
+                        socio.esta_activo,
+                        socio.lista_actividades.copy(),
+                        True
+                    )
 
-    def valorar_actividad(self) -> None:
-        raise NotImplementedError
-
-    def convertir_premium(self) -> None:
-        raise NotImplementedError
+                    self.__lista_usuarios[i] = nuevo
+                    return
 
     """
     ---------------------------
@@ -370,21 +518,20 @@ class ZaidinGym:
                     print("Ya hay una actividad igual creada")
                     return
 
-            self.__lista_usuarios.append(actividad)
+            self.__lista_actividades.append(actividad)
             print("Actividad creada con exito")
 
         except ValueError:
             print("Error al crear el actividad")
 
-    def eliminar_actividad(self, nombre:str)->None:
+    def eliminar_actividad(self)->None:
         """
         Función que elimina una actividad del gimnasio.\n
 
         Si la actividad está seleccionada por algún socio no se elimina y muestra todos los socios que tienen esa actividad.
-        :param nombre: Str con el nombre de la actividad
         :return: None
         """
-        nombre = nombre.lower()
+        nombre = input("Introduce el nombre de la actividad a eliminar: ").strip()
 
         for usuario in self.__lista_usuarios:
             for actividad in usuario.lista_actividades:
@@ -398,7 +545,7 @@ class ZaidinGym:
 
         for actividad in self.__lista_actividades:
             if actividad.nombre == nombre:
-                self.__lista_usuarios.remove(actividad)
+                self.__lista_actividades.remove(actividad)
                 print("Actividad eliminada con exito")
 
     """
@@ -407,21 +554,91 @@ class ZaidinGym:
     ------------------------------
     """
 
-    def listar_personas_existentes(self):
-        raise NotImplementedError
+    def listar_personas_existentes(self)->None:
+        """
+        Funcion que lista una serie de usuarios dependiendo de lo que decide el usuario
+        :return: None
+        """
+        print("\nQue tipo de lista quieres mostrar")
+
+        opciones_lista = {
+            1:self._listar_todos,
+            2:self._listar_monitores,
+            3:self._listar_socios,
+            4:self._listar_socios_premium
+        }
+
+        self._ejecutar_menu(ZaidinGym.menu_listar_personas, opciones_lista, 5)
 
     def listar_n_mejores(self):
-        raise NotImplementedError
+        """
+        Funcion que muestra por pantalla las n mejores actividades
+        :return: None
+        """
+        try:
+            numero = int(input("Introduce el numero de actividades que quieres mostrar: "))
+            lista = self._ordenar_actividades_votos()
+
+            for actividad in lista[:numero]:
+                print(actividad)
+
+        except ValueError:
+            print("Introduce un valor correcto")
 
     def listar_n_mejores_categoria(self):
-        raise NotImplementedError
+        """
+        Funcion que muestra por pantalla las n mejores actividades filtradas por categoria
+        :return: None
+        """
+        try:
+            numero = int(input("Introduce el numero de actividades que quieres mostrar: "))
+            lista = self._ordenar_actividades_votos()
+
+            categoria = self._pedir_categoria_actividad()
+            filtradas = [act for act in lista if act.categoria == categoria]
+
+            for actividad in filtradas[:numero]:
+                print(actividad)
+
+
+        except ValueError:
+            print("Introduce un valor correcto")
 
     def listar_n_mejores_calorias(self):
-        raise NotImplementedError
+        """
+        Funcion que muestra por pantalla las n mejores actividdes filtradas por calorias
+        :return: None
+        """
+        try:
+            numero = int(input("Introduce el numero de actividades que quieres mostrar: "))
+            lista = self._ordenar_actividades_votos()
+
+            filtradas = sorted(lista, key= lambda act: (act.calcular_valoracion(), act.calorias), reverse=True)
+
+            for actividad in filtradas[:numero]:
+                print(actividad)
+
+
+        except ValueError:
+            print("Introduce un valor correcto")
 
     def listar_n_mejores_monitores(self):
-        raise NotImplementedError
+        """
+        Funcion que muestra por pantalla los n mejores monitores
+        :return: None
+        """
+        try:
+            numero = int(input("Introduce el numero de monitores que quieres mostrar: "))
 
+            monitores = [u for u in self.__lista_usuarios if isinstance(u, Monitor)]
+
+            ordenados = sorted(monitores, key=lambda m: m.calcular_valoracion(), reverse=True)
+
+            for monitor in ordenados[:numero]:
+                print(monitor)
+
+        except ValueError:
+            print("Introduce un valor correcto")
     """
     ------------------------------
         FUNCIONES AUXILIARES
@@ -569,7 +786,7 @@ class ZaidinGym:
 
         for usuario in self.__lista_usuarios:
             for actividad in usuario.lista_actividades:
-                if actividad == nombre_actividad:
+                if actividad.nombre.lower() == nombre_actividad:
                     lista_usuarios.append(usuario)
 
         return lista_usuarios
@@ -586,6 +803,8 @@ class ZaidinGym:
 
             try:
                 monitor.sueldo = nuevo_sueldo
+                print("Sueldo actualizado con exito")
+                break
             except ValueError as e:
                 print(f"Error al actualizar el sueldo {e}")
 
@@ -633,6 +852,73 @@ class ZaidinGym:
                     return usuario
         return None
 
+    def _listar_todos(self)->None:
+        """
+        Funcion auxiliar para listar los usuarios de la aplicacion en las consultas y estadisticas
+        :return: None
+        """
+        print("Todos los usuarios: ")
+
+        for usuario in self.__lista_usuarios:
+            print(usuario)
+
+    def _listar_monitores(self)->None:
+        """
+        Funcion auxiliar para listar los monitores de la aplicacion en las consultas y estadisticas
+        :return: None
+        """
+        print("Monitores: ")
+
+        for usuario in self.__lista_usuarios:
+            if isinstance(usuario, Monitor):
+                print(usuario)
+
+    def _listar_socios(self)->None:
+        """
+        Funcion auxiliar para listar los socios de la aplicacion en las consultas y estadisticas
+        :return: None
+        """
+        print("Socios: ")
+
+        for usuario in self.__lista_usuarios:
+            if isinstance(usuario, Socio) and not isinstance(usuario, SocioPremium):
+                print(usuario)
+
+    def _listar_socios_premium(self)->None:
+        """
+        Funcion auxiliar para listar los socios premium de la aplicacion en las consultas y estadisticas
+        :return: None
+        """
+        print("Socios premium: ")
+
+        for usuario in self.__lista_usuarios:
+            if isinstance(usuario, SocioPremium):
+                print(usuario)
+
+    def _ordenar_actividades_votos(self)->list[Actividad]:
+        """
+        Funcion que devuelve un list con las actividades ordenadas por mejor valoracion en orden descendente
+        :return: list[Actividad]
+        """
+        return sorted(
+            self.__lista_actividades,
+            key=lambda act: act.calcular_valoracion() if act.calcular_valoracion() is not None else 0,
+            reverse=True
+        )
+
+    def _buscar_persona_nombre(self, nombre: str)->Socio | SocioPremium |None:
+        """
+        Funcion que devuelve un Socio o SocioPremium si coincide con el nombre pasado por parametro
+        :param nombre: String con el nombre del usuario
+        :return: Socio | SocioPremium | None
+        """
+        nombre = nombre.lower()
+        for usuario in self.__lista_usuarios:
+            if isinstance(usuario, (Socio, SocioPremium)):
+                if usuario.nombre.lower() == nombre:
+                    return usuario
+        return None
+
     """
     --------------------------
             MENUS
@@ -665,6 +951,14 @@ class ZaidinGym:
         print("6. Volver")
 
     @staticmethod
+    def menu_gestion_socios_premium():
+        print("\n1. Mostrar lista de actividades")
+        print("2. Añadir actividad")
+        print("3. Eliminar actividad")
+        print("4. Valorar actividad")
+        print("5. Volver")
+
+    @staticmethod
     def menu_consultas_estadisticas():
         print("\n1. Listar personas existentes")
         print("2. Listar las n mejores actividades")
@@ -685,6 +979,14 @@ class ZaidinGym:
         print("2. Actualizar lista de especialidades")
         print("3. Realizar una valoracion")
         print("4. Volver")
+
+    @staticmethod
+    def menu_listar_personas():
+        print("1. Listar todos los usuarios")
+        print("2. Listar solo los monitores")
+        print("3. Listar solo los socios")
+        print("4. Listar solo los socios premium")
+        print("5. Volver")
 
 if __name__ == "__main__":
     gym = ZaidinGym()

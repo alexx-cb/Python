@@ -21,14 +21,10 @@ class SocioPremium(Socio):
 
     def add_actividad(self, actividad:Actividad) -> bool|None:
         if not isinstance(actividad, Actividad):
-            raise ValueError("El formato de la actividad es incorrecto")
+            raise ValueError("Formato incorrecto")
 
-        if self.__es_premium:
-            self._lista_actividades.append(actividad)
-            return True
-        else:
-            super().add_actividad(actividad)
-            return None
+        self._lista_actividades.append(actividad)
+        return True
 
     def del_actividad(self, actividad:Actividad) ->bool|None:
         return super().del_actividad(actividad)
@@ -41,4 +37,4 @@ class SocioPremium(Socio):
         return True
 
     def __str__(self):
-        return super().__str__() + f"\nPremium: {self.__es_premium}"
+        return super().__str__() + f"\nPremium: {self.__es_premium}\n"

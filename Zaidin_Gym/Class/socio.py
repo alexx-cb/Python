@@ -21,8 +21,9 @@ class Socio(Persona):
         if not self._validar_bool(esta_activo):
             raise TypeError("Formato de activo incorrecto")
 
-        if not self._validar_lista(lista_actividades):
-            raise TypeError("Formato de la lista de actividades incorrecta")
+        if lista_actividades is not None:
+            if not self._validar_lista(lista_actividades):
+                raise TypeError("Formato de la lista de actividades incorrecto")
 
         if not self._validar_horas_actividades(lista_actividades):
             raise ValueError("La lista supera las horas necesarias")
@@ -122,17 +123,17 @@ class Socio(Persona):
 
     @staticmethod
     def _validar_lista(lista:list[Actividad]) -> bool|None:
-        return isinstance(lista, list)
+        return isinstance(lista, list) and all(isinstance(a, Actividad) for a in lista)
 
     @staticmethod
     def _validar_actividades_premium(lista:list[Actividad])->bool|None:
         for actividad in lista:
             if actividad.es_premium:
                 return False
-        return None
+        return True
 
     def _validar_horas_actividades(self, lista) -> bool:
-        return sum(actividad.duracion for actividad in lista) <= 6
+        return sum(actividad.duracion for actividad in lista) <= 360
 
     @staticmethod
     def _permite_actividades_premium() -> bool:
@@ -141,13 +142,13 @@ class Socio(Persona):
 
     def __copy__(self):
         nuevo = Socio(
-            self._nombre,
-            self._dni,
-            self._direccion,
-            self._provincia,
-            self._codigo_postal,
-            self._telefono,
-            self._fecha_nacimiento,
+            self.__nombre,
+            self.__dni,
+            self.__direccion,
+            self.__provincia,
+            self.__codigo_postal,
+            self.__telefono,
+            self.__fecha_nacimiento,
             self.__fecha_registro,
             self.__fecha_ultimo_acceso,
             self.__esta_activo,
@@ -163,5 +164,5 @@ class Socio(Persona):
                              f"\nFecha ultimo acceso: {self.__fecha_ultimo_acceso}"
                              f"\nEsta Activo: {self.__esta_activo}"
                              f"\nCuota: {self.__cuota}"
-                             f"\nLista de actividades: {self._lista_actividades}")
+                             f"\nLista de actividades: {', '.join(a.nombre for a in self._lista_actividades)}")
 

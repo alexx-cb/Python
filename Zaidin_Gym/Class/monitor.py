@@ -43,7 +43,11 @@ class Monitor(Persona, Valorable):
             return True
 
     def calcular_valoracion(self) ->int:
-        return (self.__votos_positivos // (self.__votos_negativos + self.__votos_positivos)) * 10
+        total = self.__votos_positivos + self.__votos_negativos
+        if total == 0:
+            return 0
+
+        return int((self.__votos_positivos / total) * 10)
 
     @property
     def especialidad(self) -> list:
@@ -98,13 +102,13 @@ class Monitor(Persona, Valorable):
 
     def __copy__(self):
         return Monitor(
-            self._nombre,
-            self._dni,
-            self._direccion,
-            self._provincia,
-            self._codigo_postal,
-            self._telefono,
-            self._fecha_nacimiento,
+            self.__nombre,
+            self.__dni,
+            self.__direccion,
+            self.__provincia,
+            self.__codigo_postal,
+            self.__telefono,
+            self.__fecha_nacimiento,
             self.__especialidad.copy(),
             self.__sueldo,
             self.__votos_positivos,
@@ -113,7 +117,7 @@ class Monitor(Persona, Valorable):
 
 
     def __str__(self):
-        return super().__str__() + (f"Especialidades: {self.__especialidad}\n"
+        return super().__str__() + (f"Especialidades: {', '.join(e.value for e in self.__especialidad)}\n"
                              f"Sueldo: {self.__sueldo}\n"
                              f"Votos positivos: {self.__votos_positivos}\n"
                              f"Votos negativos: {self.__votos_negativos}\n")

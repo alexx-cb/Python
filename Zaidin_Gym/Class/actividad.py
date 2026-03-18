@@ -35,7 +35,9 @@ class Actividad(Valorable):
             return True
         return None
 
-    def calcular_valoracion(self)->int:
+    def calcular_valoracion(self) -> int:
+        if not self.__votos:
+            return 0
         return sum(self.__votos) // len(self.__votos)
 
 
@@ -120,7 +122,7 @@ class Actividad(Valorable):
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Actividad):
-            return False
+            raise ValueError("No se puede comparar el tipo de Actividad")
 
         return (
                 self.__nombre == other.__nombre and
@@ -130,7 +132,7 @@ class Actividad(Valorable):
 
     def __lt__(self, other) -> bool:
         if not isinstance(other, Actividad):
-            return NotImplemented
+            raise ValueError("No se puede comparar el tipo de Actividad")
 
         if self.__nombre == other.__nombre:
             return self.__duracion < other.__duracion
@@ -141,6 +143,6 @@ class Actividad(Valorable):
         return str(f"Nombre: {self.__nombre}\n"
                    f"Duracion: {self.__duracion}\n"
                    f"Calorias: {self.__calorias}\n"
-                   f"Categoria: {self.__categoria}\n"
+                   f"Categoria: {self.__categoria.name}\n"
                    f"Premium: {self.__es_premium}\n"
-                   f"Votos: {self.__votos}\n")
+                   f"Valoracion: {self.calcular_valoracion()}\n")

@@ -26,42 +26,42 @@ class Persona(ABC):
 
         self._validar_fecha_nacimiento(fecha_nacimiento)
 
-        self._nombre = nombre
-        self._dni = dni
-        self._direccion = direccion
-        self._provincia = provincia
-        self._codigo_postal = codigo_postal
-        self._telefono = telefono
-        self._fecha_nacimiento = fecha_nacimiento
+        self.__nombre = nombre
+        self.__dni = dni
+        self.__direccion = direccion
+        self.__provincia = provincia
+        self.__codigo_postal = codigo_postal
+        self.__telefono = telefono
+        self.__fecha_nacimiento = fecha_nacimiento
 
 
     @property
     def nombre(self) -> str:
-        return self._nombre
+        return self.__nombre
 
     @property
     def dni(self) -> str:
-        return self._dni
+        return self.__dni
 
     @property
     def direccion(self) -> str:
-        return self._direccion
+        return self.__direccion
 
     @property
     def provincia(self) -> str:
-        return self._provincia
+        return self.__provincia
 
     @property
     def codigo_postal(self) -> str:
-        return self._codigo_postal
+        return self.__codigo_postal
 
     @property
     def telefono(self) -> str:
-        return self._telefono
+        return self.__telefono
 
     @property
-    def fecha_nacimiento(self) -> str:
-        return str(self._fecha_nacimiento)
+    def fecha_nacimiento(self) -> date:
+        return self.__fecha_nacimiento
 
 
     @nombre.setter
@@ -69,46 +69,46 @@ class Persona(ABC):
         if not self._validar_nombre(nombre):
             raise ValueError('El nombre debe estar entre 10 y 50 caracteres')
 
-        self._nombre = nombre
+        self.__nombre = nombre
 
     @dni.setter
     def dni(self, dni: str):
         if not self._validar_dni(dni):
             raise ValueError("Introduce un DNI correcto")
 
-        self._dni = dni
+        self.__dni = dni
 
     @direccion.setter
     def direccion(self, direccion: str):
-        self._direccion = direccion
+        self.__direccion = direccion
 
     @provincia.setter
     def provincia(self, provincia: str):
-        self._provincia = provincia
+        self.__provincia = provincia
 
     @codigo_postal.setter
     def codigo_postal(self, codigo_postal: str):
         if not self._validar_codigo_postal(codigo_postal):
             raise ValueError("Introduce un codigo postal correcto")
 
-        self._codigo_postal = codigo_postal
+        self.__codigo_postal = codigo_postal
 
     @telefono.setter
     def telefono(self, telefono: str):
         if not self._validar_telefono(telefono):
             raise ValueError("Introduce un telefono correcto")
 
-        self._telefono = telefono
+        self.__telefono = telefono
 
     @fecha_nacimiento.setter
     def fecha_nacimiento(self, fecha_nacimiento: date):
         if not self._validar_fecha_nacimiento(fecha_nacimiento):
             raise ValueError("Introduce una fecha de nacimiento correcta")
 
-        self._fecha_nacimiento = fecha_nacimiento
+        self.__fecha_nacimiento = fecha_nacimiento
 
     def edad(self)-> int:
-        return datetime.now().year - self._fecha_nacimiento.year
+        return datetime.now().year - self.__fecha_nacimiento.year
 
     @staticmethod
     def _validar_nombre(nombre: str) -> bool:
@@ -156,21 +156,21 @@ class Persona(ABC):
             raise ValueError('No puedes tener mas de 99 años')
 
     def __str__(self):
-        return (f"Persona:\n Nombre: {str(self._nombre)}\n"
-                f"DNI: {str(self._dni)}\n"
-                f"Direccion: {str(self._direccion)}\n"
-                f"Provincia: {str(self._provincia)}\n"
-                f"Codigo Postal: {str(self._codigo_postal)}\n"
-                f"Telefono: {str(self._telefono)}"
-                f"Fecha Nacimiento: {str(self._fecha_nacimiento)}")
+        return (f"\nPersona:\nNombre: {str(self.__nombre)}\n"
+                f"DNI: {str(self.__dni)}\n"
+                f"Direccion: {str(self.__direccion)}\n"
+                f"Provincia: {str(self.__provincia)}\n"
+                f"Codigo Postal: {str(self.__codigo_postal)}\n"
+                f"Telefono: {str(self.__telefono)}\n"
+                f"Fecha Nacimiento: {str(self.__fecha_nacimiento)}")
 
 
     def __eq__(self, other):
         if not isinstance(other, Persona):
             return NotImplemented
-        return str(self._dni) == str(other._dni)
+        return str(self.__dni) == str(other.__dni)
 
     def __lt__(self, other):
         if not isinstance(other, Persona):
             return NotImplemented
-        return self._fecha_nacimiento < other._fecha_nacimiento
+        return self.__fecha_nacimiento < other.__fecha_nacimiento
