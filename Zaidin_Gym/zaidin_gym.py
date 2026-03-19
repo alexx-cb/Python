@@ -180,6 +180,10 @@ class ZaidinGym:
         if not persona:
             persona = self._buscar_persona_nombre(entrada)
 
+        if isinstance(persona, Monitor):
+            print("El DNI introducido corresponde a un monitor, no a un socio")
+            return
+
         if persona:
             persona.fecha_ultimo_acceso = date.today()
 
@@ -203,6 +207,7 @@ class ZaidinGym:
 
         else:
             print(f"No se ha encontrado el usuario {entrada}")
+            return
 
     def consultas_estadisticas(self) -> None:
         """
@@ -276,8 +281,8 @@ class ZaidinGym:
                             sueldo, votos_positivos, votos_negativos)
                     self.__lista_usuarios.append(monitor)
                     print("Monitor creado con exito")
-                except ValueError:
-                    print("Error al crear el monitor")
+                except ValueError as e:
+                    print(f"Error al crear el monitor: {e}")
 
             if opcion == 2:
                 fecha_registro = self._pedir_fecha("Ingrese la fecha de registro (dd/mm/aaaa)")
@@ -292,8 +297,8 @@ class ZaidinGym:
 
                     self.__lista_usuarios.append(socio)
                     print("Socio creado con exito")
-                except ValueError:
-                    print("Error al crear el socio")
+                except ValueError as e:
+                    print(f"Error al crear el socio: {e}")
 
             if opcion == 3:
                 fecha_registro = self._pedir_fecha("Ingrese la fecha de registro (dd/mm/aaaa)")
@@ -309,8 +314,8 @@ class ZaidinGym:
 
                     self.__lista_usuarios.append(socio)
                     print("Socio creado con exito")
-                except ValueError:
-                    print("Error al crear el socio")
+                except ValueError as e:
+                    print(f"Error al crear el socio: {e}")
 
     def baja_persona(self)->None:
         """
@@ -410,11 +415,11 @@ class ZaidinGym:
         for actividad in self.__lista_actividades:
             print(actividad)
 
-        nombre = input("Introduce el nombre de la actividad que quieres añadir: ")
+        nombre = input("Introduce el nombre de la actividad que quieres añadir: ").strip().lower()
 
         encontrada = None
         for actividad in self.__lista_actividades:
-            if actividad.nombre == nombre:
+            if actividad.nombre.lower() == nombre:
                 encontrada = actividad
                 break
 
@@ -429,15 +434,20 @@ class ZaidinGym:
 
     @staticmethod
     def eliminar_actividad_lista(socio: Socio | SocioPremium)->None:
+        """
+        Funcion que elimina una actividad de la lista del socio pasado por parametro
+        :param socio: Socio | SocioPremium
+        :return: None
+        """
         print("Lista de actividades del socio")
         for actividad in socio.lista_actividades:
             print(actividad)
 
-        nombre = input("Escribe el nombre de la actividad que quieres eliminar: ")
+        nombre = input("Escribe el nombre de la actividad que quieres eliminar: ").lower().strip()
         encontrada = None
 
         for actividad in socio.lista_actividades:
-            if actividad.nombre == nombre:
+            if actividad.nombre.lower() == nombre:
                 encontrada = actividad
                 break
 
@@ -452,14 +462,20 @@ class ZaidinGym:
 
     @staticmethod
     def valorar_actividad(socio: Socio | SocioPremium) -> None:
+        """
+        Funcion que añade una nota a la actividad seleccionada por el usuario, que se encuentra en la lista
+        de actividades del socio
+        :param socio: Socio | SocioPremium
+        :return: None
+        """
         print("Qué actividad quiere valorar?")
 
         for actividad in socio.lista_actividades:
             print(actividad)
 
-        nombre = input("Introduce el nombre de la actividad: ")
+        nombre = input("Introduce el nombre de la actividad: ").lower().strip()
         for actividad in socio.lista_actividades:
-            if actividad.nombre == nombre:
+            if actividad.nombre.lower() == nombre:
                 try:
                     nota = int(input("Introduce que nota quieres darle a la actividad: "))
                     actividad.votar(nota)
@@ -468,6 +484,11 @@ class ZaidinGym:
                     print(f"Error al valorar la actividad: {e}")
 
     def convertir_premium(self, socio: Socio) -> None:
+        """
+        Funcion que convierte a un socio en un SocioPremium y lo reemplaza en la lista de usuarios
+        :param socio: Socio que se quiere convertir
+        :return: None
+        """
         if isinstance(socio, Socio) and not isinstance(socio, SocioPremium):
             for i, usuario in enumerate(self.__lista_usuarios):
                 if usuario == socio:
@@ -487,7 +508,8 @@ class ZaidinGym:
                     )
 
                     self.__lista_usuarios[i] = nuevo
-                    return
+                    print("Socio convertido en premium correctamente")
+                    break
 
     """
     ---------------------------
@@ -639,6 +661,7 @@ class ZaidinGym:
 
         except ValueError:
             print("Introduce un valor correcto")
+
     """
     ------------------------------
         FUNCIONES AUXILIARES
@@ -817,8 +840,9 @@ class ZaidinGym:
 
         print("Especialidades del monitor")
         for esp in monitor.especialidad:
-            print(esp)
+            print(esp.name)
 
+        print("Especialidades posibles: ", ", ".join(esp.name for esp in Especialidad))
         print("Introduzca de nuevo las especialidades del monitor")
         especialidades = self._pedir_especialidad()
 

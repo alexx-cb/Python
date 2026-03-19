@@ -162,7 +162,7 @@ class Persona(ABC):
                 f"Provincia: {str(self.__provincia)}\n"
                 f"Codigo Postal: {str(self.__codigo_postal)}\n"
                 f"Telefono: {str(self.__telefono)}\n"
-                f"Fecha Nacimiento: {str(self.__fecha_nacimiento)}")
+                f"Fecha Nacimiento: {str(self.__fecha_nacimiento)}\n")
 
 
     def __eq__(self, other):

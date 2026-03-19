@@ -117,7 +117,7 @@ class Monitor(Persona, Valorable):
 
 
     def __str__(self):
-        return super().__str__() + (f"Especialidades: {', '.join(e.value for e in self.__especialidad)}\n"
+        return super().__str__() + (f"Especialidades: {', '.join(e.name for e in self.__especialidad)}\n"
                              f"Sueldo: {self.__sueldo}\n"
                              f"Votos positivos: {self.__votos_positivos}\n"
                              f"Votos negativos: {self.__votos_negativos}\n")

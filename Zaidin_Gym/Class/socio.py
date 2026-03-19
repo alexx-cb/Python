@@ -58,7 +58,7 @@ class Socio(Persona):
         if actividad.es_premium:
             raise ValueError(f"La actividad {actividad.nombre} es para usuarios premium")
 
-        if self.get_duracion_actividades() + actividad.duracion <=6:
+        if self.get_duracion_actividades() + actividad.duracion <=360:
             self._lista_actividades.append(actividad)
             return True
         else:
@@ -160,7 +160,7 @@ class Socio(Persona):
         return nuevo
 
     def __str__(self):
-        return super().__str__() + (f"\nFecha de Registro: {self.__fecha_registro}"
+        return super().__str__() + (f"Fecha de Registro: {self.__fecha_registro}"
                              f"\nFecha ultimo acceso: {self.__fecha_ultimo_acceso}"
                              f"\nEsta Activo: {self.__esta_activo}"
                              f"\nCuota: {self.__cuota}"
