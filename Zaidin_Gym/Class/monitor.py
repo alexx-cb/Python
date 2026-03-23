@@ -57,6 +57,14 @@ class Monitor(Persona, Valorable):
     def sueldo(self) -> float:
         return self.__sueldo
 
+    @property
+    def votos_positivos(self) -> int:
+        return self.__votos_positivos
+
+    @property
+    def votos_negativos(self) -> int:
+        return self.__votos_negativos
+
     @especialidad.setter
     def especialidad(self,especialidad:list[Especialidad])->None:
 
